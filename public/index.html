@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>anime</title>
+  <title>Anime & Manga Vault - Custom Font</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,11 +11,6 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <!-- Inter Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -28,7 +23,7 @@
             vaultBorder: 'rgba(255, 255, 255, 0.1)',
           },
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['GNFRegular', 'sans-serif'],
           }
         }
       }
@@ -36,7 +31,15 @@
   </script>
 
   <style>
-    /* Absolute No Background - Fully Transparent Base */
+    /* Custom Font Registration */
+    @font-face {
+      font-family: 'GNFRegular';
+      src: url('gnf.regular.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* Absolute No Background - Fully Transparent Base & Custom Font Application */
     html, body {
       background-color: transparent !important;
       background: transparent !important;
@@ -45,6 +48,11 @@
       width: 100%;
       min-height: 100vh;
       color: #ffffff;
+      font-family: 'GNFRegular', sans-serif !important;
+    }
+
+    input, button, select, textarea {
+      font-family: 'GNFRegular', sans-serif !important;
     }
 
     /* Monochrome Scrollbar */
@@ -87,7 +95,6 @@
       animation: shimmer 1.8s infinite;
     }
 
-    /* Transparent Reader Theme Presets */
     .reader-theme-dark { background-color: rgba(0, 0, 0, 0.85); color: #ffffff; backdrop-filter: blur(10px); }
     .reader-theme-gray { background-color: rgba(17, 17, 17, 0.85); color: #cccccc; backdrop-filter: blur(10px); }
     .reader-theme-light { background-color: rgba(255, 255, 255, 0.85); color: #000000; backdrop-filter: blur(10px); }
@@ -99,7 +106,7 @@
   <header class="sticky top-0 z-40 w-full glass-header px-2 sm:px-4 py-2.5">
     <div class="w-full flex items-center justify-between gap-2 sm:gap-4">
       
-      <!-- Mode Switcher -->
+      <!-- Mode Switcher: Anime vs Manga -->
       <div class="flex items-center shrink-0">
         <div class="flex bg-black/40 border border-white/10 rounded p-0.5 backdrop-blur-md">
           <button 
@@ -125,7 +132,7 @@
         <input 
           type="text" 
           id="searchInput" 
-          placeholder="Search vault..." 
+          placeholder="Search" 
           class="w-full bg-black/40 backdrop-blur-md text-xs sm:text-sm text-white placeholder-neutral-400 rounded pl-10 pr-10 py-1.5 border border-white/10 focus:border-white/40 focus:outline-none transition-all shadow-inner"
           autocomplete="off"
         >
@@ -167,15 +174,13 @@
     </div>
   </main>
 
-  <!-- EMBEDDED ANIME PLAYER MODAL WITH SEASONS -->
+  <!-- EMBEDDED ANIME PLAYER MODAL -->
   <div id="animePlayerModal" class="fixed inset-0 z-50 hidden flex flex-col bg-black/80 backdrop-blur-xl transition-colors duration-200">
-    <!-- Player Top Header -->
     <header class="p-2 sm:px-4 bg-black/60 backdrop-blur-md border-b border-white/10 flex flex-wrap items-center justify-between gap-2 z-20 shrink-0">
       <div class="flex items-center gap-2 max-w-xs sm:max-w-md truncate">
         <h3 id="playerAnimeTitle" class="text-xs sm:text-sm font-bold text-white truncate">Anime Title</h3>
       </div>
 
-      <!-- Controls: Season & Episode Switchers -->
       <div class="flex items-center gap-2">
         <div class="flex items-center gap-1">
           <span class="text-xs text-neutral-400 font-semibold">Season:</span>
@@ -192,13 +197,11 @@
         </div>
       </div>
 
-      <!-- Close Button -->
       <button id="btnCloseAnimePlayer" class="w-7 h-7 rounded bg-black/60 hover:bg-white hover:text-black border border-white/10 text-neutral-300 flex items-center justify-center transition-all">
         <i class="fa-solid fa-xmark text-xs"></i>
       </button>
     </header>
 
-    <!-- Player iframe Canvas Area -->
     <div class="flex-1 w-full bg-transparent flex items-center justify-center relative">
       <iframe id="animePlayerIframe" src="" class="w-full h-full border-0 bg-transparent" allowfullscreen></iframe>
     </div>
