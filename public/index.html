@@ -28,7 +28,8 @@
             vaultBorder: 'rgba(255, 255, 255, 0.1)',
           },
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['GNF', 'Inter', 'sans-serif'],
+            mono: ['GNF', 'Inter', 'sans-serif'],
           }
         }
       }
@@ -36,6 +37,18 @@
   </script>
 
   <style>
+    /* Custom font: put gnf.regular.ttf in the same folder as this index.html */
+    @font-face {
+      font-family: 'GNF';
+      src: url('gnf.regular.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    html, body, button, input, select, textarea {
+      font-family: 'GNF', 'Inter', sans-serif;
+    }
+
     /* Absolute No Background - Fully Transparent Base */
     html, body {
       background-color: transparent !important;
@@ -589,7 +602,7 @@
       elements.mangaReaderModal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
 
-      elements.readerPagesContainer.innerHTML = `<div class="text-center py-20 space-y-3"><i class="fa-solid fa-circle-notch fa-spin text-xl text-neutral-400"></i><p class="text-xs text-neutral-400">Searching MangaDex...</p></div>`;
+      elements.readerPagesContainer.innerHTML = `<div class="text-center py-20 space-y-3"><i class="fa-solid fa-circle-notch fa-spin text-xl text-neutral-400"></i><p class="text-xs text-neutral-400">Searching all manga providers...</p></div>`;
 
       try {
         const t1 = item.title?.english || '';
@@ -597,7 +610,8 @@
         const params = new URLSearchParams({ action: 'chapters', title: t1 || t2 });
         if (t1 && t2 && t1 !== t2) params.set('alt', t2);
         if (item.id) params.set('al', item.id);
-        const res = await fetch('/api/mangadex?' + params.toString());
+        if (item.idMal) params.set('mal', item.idMal);
+        const res = await fetch('/api/manga?' + params.toString());
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error || 'Manga not found on MangaDex.');
         if (!data.chapters?.length) throw new Error('No English chapters available.');
@@ -605,6 +619,7 @@
         state.reader.mangadexId = data.mdId;
         const chapterList = data.chapters.map(ch => ({
           id: ch.id,
+          src: ch.src || [ch.id],
           chapter: ch.ch == null ? 'Oneshot' : ch.ch,
           vol: ch.vol,
           season: ch.s,
@@ -633,10 +648,11 @@
       elements.readerPagesContainer.innerHTML = `<div class="text-center py-20 space-y-3"><i class="fa-solid fa-circle-notch fa-spin text-xl text-neutral-400"></i><p class="text-xs text-neutral-400">Loading Chapter ${escapeHtml(ch.chapter)}...</p></div>`;
 
       try {
-        const atHomeRes = await fetch('/api/mangadex?action=pages&id=' + encodeURIComponent(ch.id));
+        const atHomeRes = await fetch('/api/manga?action=pages&src=' + encodeURIComponent(ch.src.join(',')));
         const atHomeJson = await atHomeRes.json();
         if (!atHomeRes.ok || atHomeJson.error) throw new Error(atHomeJson.error || 'Could not load pages');
-        state.reader.pages = atHomeJson.data.map(f => '/api/image?u=' + encodeURIComponent(`${atHomeJson.base}/data/${atHomeJson.hash}/${f}`));
+        state.reader.pages = atHomeJson.urls;
+        state.reader.alts = atHomeJson.alts || [];
         state.reader.singlePageIndex = 0;
         state.reader.viewMode === 'scroll' ? renderWebtoonScroll() : renderSinglePage();
       } catch (err) {
@@ -646,7 +662,7 @@
 
     function renderWebtoonScroll() {
       elements.readerSinglePageFooter.classList.add('hidden');
-      elements.readerPagesContainer.innerHTML = state.reader.pages.map((url, i) => `<img src="${escapeHtml(url)}" alt="Page ${i + 1}" loading="lazy" class="w-full max-w-2xl mx-auto block my-2 border border-white/10 shadow-lg">`).join('');
+      elements.readerPagesContainer.innerHTML = state.reader.pages.map((url, i) => `<img src="${escapeHtml(url)}" data-alt="${escapeHtml((state.reader.alts || [])[i] || '')}" onerror="if(this.dataset.alt&&!this.dataset.tried){this.dataset.tried=1;this.src=this.dataset.alt}" alt="Page ${i + 1}" loading="lazy" class="w-full max-w-2xl mx-auto block my-2 border border-white/10 shadow-lg">`).join('');
     }
 
     function renderSinglePage() {
@@ -656,7 +672,7 @@
       elements.singlePageIndicator.textContent = `Page ${current + 1} / ${total}`;
       elements.btnSinglePrevPage.disabled = (current === 0);
       elements.btnSingleNextPage.disabled = (current === total - 1);
-      elements.readerPagesContainer.innerHTML = `<div class="flex items-center justify-center min-h-[70vh]"><img src="${escapeHtml(state.reader.pages[current])}" alt="Page ${current + 1}" class="max-h-[80vh] w-auto object-contain border border-white/10 shadow-lg"></div>`;
+      elements.readerPagesContainer.innerHTML = `<div class="flex items-center justify-center min-h-[70vh]"><img src="${escapeHtml(state.reader.pages[current])}" data-alt="${escapeHtml((state.reader.alts || [])[current] || '')}" onerror="if(this.dataset.alt&&!this.dataset.tried){this.dataset.tried=1;this.src=this.dataset.alt}" alt="Page ${current + 1}" class="max-h-[80vh] w-auto object-contain border border-white/10 shadow-lg"></div>`;
     }
 
     function toggleReaderViewMode() {
