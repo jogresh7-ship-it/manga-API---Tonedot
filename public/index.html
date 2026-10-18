@@ -1,851 +1,696 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FruitANIME</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<style>
-  body { background-color:#000; color:#f4f4f5; font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; }
-  dialog::backdrop { background:rgba(0,0,0,.85); backdrop-filter:blur(4px); }
-  .sk-cover { animation:pulse 1.1s infinite alternate; }
-  @keyframes pulse { to { opacity:.35; } }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>anime</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            vaultBg: 'transparent',
+            vaultPanel: 'transparent',
+            vaultCard: 'transparent',
+            vaultBorder: 'rgba(255, 255, 255, 0.1)',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Absolute No Background - Fully Transparent Base */
+    html, body {
+      background-color: transparent !important;
+      background: transparent !important;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100vh;
+      color: #ffffff;
+    }
+
+    /* Monochrome Scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Ultra-Clear Glass Header */
+    .glass-header {
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Strict 2:3 Poster Aspect Ratio */
+    .poster-card {
+      aspect-ratio: 2 / 3;
+    }
+
+    /* Shimmer Skeleton Animation */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .skeleton-shimmer {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.8s infinite;
+    }
+
+    /* Transparent Reader Theme Presets */
+    .reader-theme-dark { background-color: rgba(0, 0, 0, 0.85); color: #ffffff; backdrop-filter: blur(10px); }
+    .reader-theme-gray { background-color: rgba(17, 17, 17, 0.85); color: #cccccc; backdrop-filter: blur(10px); }
+    .reader-theme-light { background-color: rgba(255, 255, 255, 0.85); color: #000000; backdrop-filter: blur(10px); }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased relative bg-black text-zinc-100">
+<body class="bg-transparent text-white antialiased min-h-screen flex flex-col selection:bg-white selection:text-black">
 
-<header id="main-header" class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md px-6 py-4 flex items-center justify-between transition-transform duration-300 ease-in-out border-b border-zinc-800/50">
-  <div class="flex items-center space-x-8">
-    <a href="javascript:void(0)" onclick="showHomeView()" class="flex items-center space-x-2 text-xl font-black tracking-wider text-white">
-      <span class="text-white"></span><span>FRUIT<span class="text-zinc-500">.ANIME</span></span>
-    </a>
-    <nav class="hidden lg:flex items-center space-x-6 text-sm font-medium">
-      <a id="nav-home" href="javascript:void(0)" onclick="showHomeView()" class="text-white border-b-2 border-white pb-0.5">Home</a>
-      <a id="nav-browse" href="javascript:void(0)" onclick="showBrowseView()" class="text-zinc-400 hover:text-white transition">Browse</a>
-      <a id="nav-manga" href="javascript:void(0)" onclick="showMangaView()" class="text-zinc-400 hover:text-white transition">Manga</a>
-      <a id="nav-library" href="javascript:void(0)" onclick="showLibraryView()" class="text-zinc-400 hover:text-white transition">Library</a>
-    </nav>
-  </div>
-  <div class="flex items-center space-x-4">
-    <div class="relative">
-      <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-zinc-400"></i>
-      <input id="search-input" type="text" oninput="handleSearchInput(event)" placeholder="Search anime..." class="bg-zinc-900 border border-zinc-800 text-sm rounded-full py-1.5 pl-9 pr-4 text-zinc-100 focus:outline-none focus:border-white w-48 sm:w-64" />
+  <!-- TOP HEADER & MINIMAL SEARCH BAR -->
+  <header class="sticky top-0 z-40 w-full glass-header px-2 sm:px-4 py-2.5">
+    <div class="w-full flex items-center justify-between gap-2 sm:gap-4">
+      
+      <!-- Mode Switcher -->
+      <div class="flex items-center shrink-0">
+        <div class="flex bg-black/40 border border-white/10 rounded p-0.5 backdrop-blur-md">
+          <button 
+            id="btnAnimeMode" 
+            class="px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 bg-white text-black shadow"
+          >
+            <i class="fa-solid fa-tv text-[10px]"></i>
+            <span class="tracking-wide">Anime</span>
+          </button>
+          <button 
+            id="btnMangaMode" 
+            class="px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 text-neutral-400 hover:text-white"
+          >
+            <i class="fa-solid fa-book-open text-[10px]"></i>
+            <span class="tracking-wide">Manga</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div class="relative flex-1 max-w-2xl mx-auto group">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs group-focus-within:text-white transition-colors"></i>
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Search vault..." 
+          class="w-full bg-black/40 backdrop-blur-md text-xs sm:text-sm text-white placeholder-neutral-400 rounded pl-10 pr-10 py-1.5 border border-white/10 focus:border-white/40 focus:outline-none transition-all shadow-inner"
+          autocomplete="off"
+        >
+        <button id="btnClearSearch" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-1 transition-colors">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+
     </div>
-  </div>
-</header>
+  </header>
 
-<!-- 1. HOME -->
-<div id="view-home" class="w-full">
-  <div id="hero-banner-container" class="relative w-full h-[650px] overflow-hidden pointer-events-none">
-    <img id="hero-banner-img" src="https://ani.pm/banners/t/hlo3rxakENRz35A0msxGMqtLqR8.webp" alt="Hero Banner" class="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-100 ease-out" />
-    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent"></div>
-  </div>
-  <main class="-mt-[320px] relative z-10 max-w-7xl w-full mx-auto px-4 sm:px-6 space-y-12 pb-20">
-    <section id="hero-details-section" class="max-w-xl space-y-4 pt-12">
-      <h1 id="hero-title" class="text-4xl sm:text-6xl font-black text-white tracking-tight drop-shadow-lg">Black Clover</h1>
-      <div id="hero-tags" class="flex flex-wrap items-center gap-2 text-xs font-semibold">
-        <span class="bg-zinc-800 text-zinc-200 px-2.5 py-1 rounded-md flex items-center gap-1 border border-zinc-700"><i class="fa-solid fa-star text-[10px] text-yellow-400"></i> <span id="hero-rating">8.8</span></span>
-        <span class="bg-zinc-900/80 border border-zinc-800 px-2.5 py-1 rounded-md text-zinc-300" id="hero-episodes">170 Episodes</span>
-        <span class="bg-zinc-900/80 border border-zinc-800 px-2.5 py-1 rounded-md text-zinc-300" id="hero-type">TV</span>
-      </div>
-      <p id="hero-synopsis" class="text-sm text-zinc-300 leading-relaxed drop-shadow line-clamp-3">Asta and Yuno were abandoned at the same church on the same day. Raised together as children, they came to know of the "Wizard King"—a title given to the strongest mage in the kingdom...</p>
-      <div class="flex items-center space-x-3 pt-2">
-        <button id="hero-play-btn" class="bg-white text-black font-bold text-sm px-6 py-2.5 rounded-full flex items-center space-x-2 hover:bg-zinc-200 transition cursor-pointer"><i class="fa-solid fa-play text-xs"></i><span>Watch now</span></button>
-      </div>
-    </section>
+  <!-- MAIN POSTER GRID SECTION -->
+  <main class="flex-1 w-full p-1 sm:p-2">
+    <div 
+      id="posterGrid" 
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-1 sm:gap-2 w-full min-h-[85vh]"
+    ></div>
 
-    <section id="search-results-section" class="hidden space-y-4 pt-32">
-      <div class="flex items-center justify-between"><h2 id="search-results-heading" class="text-xl font-bold text-white tracking-wide">Search Results</h2></div>
-      <div id="search-anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4"></div>
-    </section>
-
-    <section id="top-weekly-section" class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xl font-bold text-white tracking-wide">Top Weekly Animes</h2>
-        <a href="javascript:void(0)" onclick="showBrowseView()" class="text-xs font-semibold text-zinc-400 hover:text-white transition">View All &rsaquo;</a>
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
+      <div class="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center mb-3 text-neutral-400">
+        <i class="fa-solid fa-ghost text-xl"></i>
       </div>
-      <div id="top-anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4"></div>
-    </section>
+      <h3 class="text-xs font-bold text-neutral-300 uppercase tracking-widest">No Posters Found</h3>
+      <button id="btnResetSearch" class="mt-4 px-4 py-1.5 bg-white text-black text-xs font-bold rounded hover:bg-neutral-200 transition-all shadow">
+        Reset Search
+      </button>
+    </div>
+
+    <!-- Pagination -->
+    <div id="paginationContainer" class="py-8 flex justify-center items-center">
+      <button 
+        id="btnLoadMore" 
+        class="hidden px-6 py-2 rounded bg-black/50 backdrop-blur-md hover:bg-black/70 border border-white/10 text-xs font-bold text-neutral-300 hover:text-white transition-all shadow"
+      >
+        <span>Load More</span>
+        <i class="fa-solid fa-arrow-down text-[10px]"></i>
+      </button>
+    </div>
   </main>
-</div>
 
-<!-- 2. BROWSE -->
-<div id="view-browse" class="hidden w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-20 space-y-6">
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
-    <div>
-      <h1 class="text-3xl font-black text-white">Browse Anime Catalog</h1>
-      <p class="text-xs text-zinc-400 mt-1">Explore official, family-safe top-rated and trending anime series.</p>
-    </div>
-    <div class="flex items-center gap-2">
-      <button onclick="fetchBrowseGrid('POPULARITY_DESC')" class="bg-white text-black font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer">Popular</button>
-      <button onclick="fetchBrowseGrid('TRENDING_DESC')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer">Trending</button>
-      <button onclick="fetchBrowseGrid('SCORE_DESC')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer">Top Rated</button>
-    </div>
-  </div>
-  <div id="browse-anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 pt-2"></div>
-</div>
+  <!-- EMBEDDED ANIME PLAYER MODAL WITH SEASONS -->
+  <div id="animePlayerModal" class="fixed inset-0 z-50 hidden flex flex-col bg-black/80 backdrop-blur-xl transition-colors duration-200">
+    <!-- Player Top Header -->
+    <header class="p-2 sm:px-4 bg-black/60 backdrop-blur-md border-b border-white/10 flex flex-wrap items-center justify-between gap-2 z-20 shrink-0">
+      <div class="flex items-center gap-2 max-w-xs sm:max-w-md truncate">
+        <h3 id="playerAnimeTitle" class="text-xs sm:text-sm font-bold text-white truncate">Anime Title</h3>
+      </div>
 
-<!-- 3. MANGA -->
-<div id="view-manga" class="hidden w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-20 space-y-6">
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
-    <div>
-      <h1 class="text-3xl font-black text-white">Browse Manga Catalog</h1>
-      <p class="text-xs text-zinc-400 mt-1">Explore manga, manhwa, and manhua. Read directly or jump to official sources.</p>
-    </div>
-    <div class="flex items-center gap-2">
-      <button onclick="fetchMangaGrid('POPULARITY_DESC')" class="bg-white text-black font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer">Popular</button>
-      <button onclick="fetchMangaGrid('TRENDING_DESC')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer">Trending</button>
-      <button onclick="fetchMangaGrid('SCORE_DESC')" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer">Top Rated</button>
-      <button type="button" id="manga-lib-btn" onclick="toggleMangaLibraryView()" class="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer"><i class="fa-solid fa-bookmark text-xs mr-1"></i> Saved</button>
-    </div>
-  </div>
-  <div class="flex flex-wrap items-center gap-2.5 bg-zinc-900/60 p-3 rounded-xl border border-zinc-800">
-    <input id="manga-q" type="search" placeholder="Search manga..." class="bg-black border border-zinc-800 text-xs rounded-lg py-2 px-3 text-white focus:outline-none focus:border-white flex-1 min-w-[180px]">
-    <select id="manga-sort" class="bg-black border border-zinc-800 text-xs rounded-lg py-2 px-3 text-zinc-200 focus:outline-none focus:border-white cursor-pointer">
-      <option value="TRENDING_DESC">Trending</option><option value="POPULARITY_DESC">Most Popular</option><option value="SCORE_DESC">Top Rated</option><option value="START_DATE_DESC">Newest</option>
-    </select>
-    <select id="manga-origin" class="bg-black border border-zinc-800 text-xs rounded-lg py-2 px-3 text-zinc-200 focus:outline-none focus:border-white cursor-pointer">
-      <option value="">All origins</option><option value="JP">Japan (Manga)</option><option value="KR">Korea (Manhwa)</option><option value="CN">China (Manhua)</option>
-    </select>
-    <select id="manga-genre" class="bg-black border border-zinc-800 text-xs rounded-lg py-2 px-3 text-zinc-200 focus:outline-none focus:border-white cursor-pointer"><option value="">All genres</option></select>
-  </div>
-  <p id="manga-status" class="text-xs text-zinc-400 font-medium"></p>
-  <div id="manga-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 pt-2"></div>
-  <button id="manga-more" class="hidden bg-white text-black font-bold text-xs px-6 py-2.5 rounded-full mx-auto block hover:bg-zinc-200 transition cursor-pointer">Show More</button>
-</div>
+      <!-- Controls: Season & Episode Switchers -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1">
+          <span class="text-xs text-neutral-400 font-semibold">Season:</span>
+          <select id="playerSeasonSelect" class="bg-black/60 border border-white/10 text-xs text-neutral-300 rounded px-2 py-1 focus:outline-none">
+            <option value="1">Season 1</option>
+          </select>
+        </div>
 
-<!-- 4. LIBRARY -->
-<div id="view-library" class="hidden w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-20 space-y-6">
-  <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
-    <div>
-      <h1 class="text-3xl font-black text-white">My Library</h1>
-      <p class="text-xs text-zinc-400 mt-1">Your bookmarked and saved anime collection.</p>
-    </div>
-    <button onclick="clearLibrary()" class="text-xs font-semibold text-zinc-500 hover:text-red-400 transition cursor-pointer">Clear All Bookmarks</button>
-  </div>
-  <div id="library-anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 pt-2"></div>
-</div>
-
-<!-- 5. DETAILS -->
-<div id="view-details" class="hidden w-full min-h-screen pt-16 relative">
-  <div class="absolute top-0 left-0 right-0 h-[450px] overflow-hidden pointer-events-none z-0">
-    <img id="detail-backdrop" src="" class="w-full h-full object-cover opacity-50" />
-    <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/80 to-black"></div>
-  </div>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-6 space-y-6">
-    <button onclick="showHomeView()" class="w-10 h-10 rounded-full bg-zinc-900/80 hover:bg-white hover:text-black text-white flex items-center justify-center transition cursor-pointer border border-zinc-800"><i class="fa-solid fa-arrow-left"></i></button>
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 pt-4">
-      <div class="md:col-span-3 space-y-4">
-        <div class="relative rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl aspect-[3/4] bg-zinc-900"><img id="detail-poster" src="" class="w-full h-full object-cover" /></div>
-        <button onclick="launchPlayerUI(currentAnime, currentSelectedSeason, 1)" class="w-full bg-white text-black font-black text-sm py-3 px-4 rounded-xl flex items-center justify-center space-x-2 hover:bg-zinc-200 transition cursor-pointer shadow-lg tracking-wider uppercase"><i class="fa-solid fa-play text-xs"></i><span>Watch Anime</span></button>
-        <button id="library-toggle-btn" onclick="toggleLibraryBookmark()" class="w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 transition cursor-pointer"><i class="fa-solid fa-bookmark text-xs"></i><span id="library-toggle-text">Add to Library</span></button>
-        <div class="space-y-4 text-xs text-zinc-300 bg-zinc-900/60 p-4 rounded-xl border border-zinc-800">
-          <div><span class="text-zinc-500 block mb-0.5">Format</span><strong id="detail-format" class="text-white text-sm">TV</strong></div>
-          <div><span class="text-zinc-500 block mb-0.5">Episodes</span><strong id="detail-sidebar-episodes" class="text-white text-sm">--</strong></div>
-          <div><span class="text-zinc-500 block mb-0.5">Views</span><strong id="detail-views" class="text-white text-sm">👁 1.2M</strong></div>
-          <div><span class="text-zinc-500 block mb-0.5">Season</span><a href="javascript:void(0)" id="detail-season" class="text-white underline hover:text-zinc-400 text-sm">Autumn</a></div>
-          <div><span class="text-zinc-500 block mb-0.5">Status</span><a href="javascript:void(0)" id="detail-status" class="text-white underline hover:text-zinc-400 text-sm">Releasing</a></div>
+        <div class="flex items-center gap-1">
+          <span class="text-xs text-neutral-400 font-semibold">Episode:</span>
+          <select id="playerEpisodeSelect" class="bg-black/60 border border-white/10 text-xs text-neutral-300 rounded px-2 py-1 focus:outline-none">
+            <option value="1">Ep 1</option>
+          </select>
         </div>
       </div>
-      <div class="md:col-span-9 space-y-6">
-        <div class="space-y-4">
-          <h1 id="detail-title" class="text-3xl sm:text-5xl font-black text-white leading-tight">Anime Title</h1>
-          <div id="detail-tags" class="flex flex-wrap items-center gap-2 text-xs font-semibold">
-            <span id="detail-year" class="bg-zinc-800 border border-zinc-700 px-3 py-1 rounded-md text-white flex items-center gap-1"><i class="fa-regular fa-calendar text-[11px]"></i> 2026</span>
-            <span id="detail-episodes-pill" class="bg-zinc-800 border border-zinc-700 px-3 py-1 rounded-md text-white">-- Episodes</span>
-            <span id="detail-type-pill" class="bg-zinc-800 border border-zinc-700 px-3 py-1 rounded-md text-white">TV</span>
-          </div>
-          <p id="detail-synopsis" class="text-sm text-zinc-300 leading-relaxed max-w-3xl">Synopsis content...</p>
-        </div>
-        <div class="pt-4 border-t border-zinc-800 space-y-3">
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-layer-group text-zinc-400"></i> Select Season</h3>
-          <div id="seasons-tabs-container" class="flex items-center space-x-2 overflow-x-auto pb-2"></div>
-        </div>
-        <div class="border-b border-zinc-800 flex items-center space-x-8 text-sm font-semibold pt-2 text-zinc-400">
-          <button class="text-white border-b-2 border-white pb-3 flex items-center gap-2"><i class="fa-solid fa-list-ul"></i> Episodes <span id="tab-ep-count" class="text-xs bg-zinc-800 px-1.5 py-0.5 rounded">--</span></button>
-        </div>
-        <div id="episodes-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2"></div>
+
+      <!-- Close Button -->
+      <button id="btnCloseAnimePlayer" class="w-7 h-7 rounded bg-black/60 hover:bg-white hover:text-black border border-white/10 text-neutral-300 flex items-center justify-center transition-all">
+        <i class="fa-solid fa-xmark text-xs"></i>
+      </button>
+    </header>
+
+    <!-- Player iframe Canvas Area -->
+    <div class="flex-1 w-full bg-transparent flex items-center justify-center relative">
+      <iframe id="animePlayerIframe" src="" class="w-full h-full border-0 bg-transparent" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- MANGA READER MODAL -->
+  <div id="mangaReaderModal" class="fixed inset-0 z-50 hidden flex flex-col reader-theme-dark transition-colors duration-200">
+    <header class="p-2 bg-black/60 backdrop-blur-md border-b border-white/10 flex flex-wrap items-center justify-between gap-2 z-20 shrink-0">
+      <div class="flex items-center gap-2 max-w-xs sm:max-w-md truncate">
+        <h3 id="readerMangaTitle" class="text-xs font-bold text-white truncate">Manga Title</h3>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- 6. PLAYER -->
-<div id="view-player" class="hidden w-full min-h-screen pt-16 relative">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 py-6 space-y-6">
-    <div class="flex items-center justify-between">
-      <button onclick="showDetailsView()" class="flex items-center space-x-2 text-xs font-bold text-zinc-400 hover:text-white transition cursor-pointer"><i class="fa-solid fa-arrow-left"></i><span>Back to Anime Details</span></button>
-      <div class="flex items-center space-x-3">
-        <span id="player-anime-title-header" class="text-sm font-black text-white truncate max-w-md"></span>
-        <span id="player-season-ep-badge" class="bg-zinc-800 text-zinc-200 border border-zinc-700 text-xs px-2.5 py-1 rounded-full font-semibold"></span>
+      <div class="flex items-center gap-1 flex-1 max-w-xs justify-center">
+        <button id="btnReaderPrevCh" disabled class="px-2 py-1 bg-black/40 disabled:opacity-30 hover:bg-black/70 border border-white/10 rounded text-xs font-semibold text-white transition-all">
+          <i class="fa-solid fa-chevron-left text-[10px]"></i>
+        </button>
+        <select id="readerChapterSelect" class="bg-black/60 border border-white/10 text-xs text-neutral-300 rounded px-2 py-1 focus:outline-none max-w-[160px] truncate">
+          <option value="">Loading Chapters...</option>
+        </select>
+        <button id="btnReaderNextCh" disabled class="px-2 py-1 bg-black/40 disabled:opacity-30 hover:bg-black/70 border border-white/10 rounded text-xs font-semibold text-white transition-all">
+          <i class="fa-solid fa-chevron-right text-[10px]"></i>
+        </button>
       </div>
+      <div class="flex items-center gap-1.5">
+        <button id="btnToggleViewMode" class="p-1.5 bg-black/40 hover:bg-black/70 rounded border border-white/10 text-xs text-neutral-400 hover:text-white" title="Toggle Scroll / Page Mode">
+          <i id="viewModeIcon" class="fa-solid fa-scroll"></i>
+        </button>
+        <button id="btnToggleTheme" class="p-1.5 bg-black/40 hover:bg-black/70 rounded border border-white/10 text-xs text-neutral-400 hover:text-white" title="Switch Theme">
+          <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+        <button id="btnCloseReader" class="w-6 h-6 rounded bg-black/40 hover:bg-white hover:text-black border border-white/10 text-neutral-300 flex items-center justify-center transition-all ml-1">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      </div>
+    </header>
+
+    <div id="readerCanvasArea" class="flex-1 overflow-y-auto p-2 sm:p-4 flex flex-col items-center bg-transparent">
+      <div id="readerPagesContainer" class="w-full max-w-2xl space-y-2 my-auto"></div>
     </div>
-    <div class="w-full aspect-video max-h-[650px] rounded-2xl overflow-hidden bg-black border border-zinc-800 shadow-2xl relative">
-      <iframe id="streamrip-player" src="about:blank" class="w-full h-full border-0" allowfullscreen="true" scrolling="no" allow="autoplay; encrypted-media"></iframe>
-    </div>
+
+    <footer id="readerSinglePageFooter" class="hidden p-2 bg-black/60 backdrop-blur-md border-t border-white/10 flex items-center justify-center gap-4 text-xs">
+      <button id="btnSinglePrevPage" class="px-3 py-1 bg-black/40 hover:bg-black/70 border border-white/10 text-white rounded">Previous Page</button>
+      <span id="singlePageIndicator" class="font-mono text-neutral-400 font-semibold">Page 1 / 1</span>
+      <button id="btnSingleNextPage" class="px-3 py-1 bg-black/40 hover:bg-black/70 border border-white/10 text-white rounded">Next Page</button>
+    </footer>
   </div>
-</div>
 
-<!-- MANGA DIALOGS -->
-<dialog id="manga-dlg" class="bg-zinc-900 border border-zinc-800 text-white rounded-2xl max-w-2xl w-[92vw] max-h-[90vh] p-0 overflow-auto shadow-2xl relative">
-  <button onclick="document.getElementById('manga-dlg').close()" class="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/80 hover:bg-white hover:text-black text-white flex items-center justify-center transition border border-zinc-800 cursor-pointer">&times;</button>
-  <div id="manga-detail" class="p-6"></div>
-</dialog>
+  <!-- JAVASCRIPT ENGINE -->
+  <script>
+    const ANILIST_URL = "https://graphql.anilist.co";
+    const ANILIST_VAULT_QUERY = `
+    query ($search: String, $page: Int, $perPage: Int, $type: MediaType) {
+      Page(page: $page, perPage: $perPage) {
+        pageInfo { hasNextPage }
+        media(type: $type, search: $search, sort: [POPULARITY_DESC], isAdult: false) {
+          id
+          idMal
+          title { english romaji native }
+          coverImage { extraLarge large }
+          bannerImage
+          episodes
+          chapters
+          relations {
+            edges {
+              relationType
+              node {
+                id
+                idMal
+                title { english romaji }
+                type
+                format
+                episodes
+              }
+            }
+          }
+          description(asHtml: false)
+          trailer { id site }
+          studios(isMain: true) { nodes { name } }
+        }
+      }
+    }`;
 
-<dialog id="manga-reader" class="bg-black text-white w-full max-w-5xl h-screen max-h-screen p-0 border-0 overflow-auto">
-  <div class="sticky top-0 z-30 flex items-center justify-between gap-3 bg-zinc-900/90 backdrop-blur-md border-b border-zinc-800 px-4 py-3">
-    <button onclick="document.getElementById('manga-reader').close()" class="w-8 h-8 rounded-full bg-zinc-800 hover:bg-white hover:text-black text-white flex items-center justify-center transition border border-zinc-700 cursor-pointer text-sm">&times;</button>
-    <div id="manga-reader-bar" class="flex-1 flex items-center gap-2 overflow-x-auto text-xs font-semibold"></div>
-  </div>
-  <div id="manga-rwrap" class="p-4 sm:p-6 max-w-3xl mx-auto"></div>
-</dialog>
+    const state = {
+      mode: 'ANIME',
+      query: '',
+      page: 1,
+      hasMorePages: true,
+      isLoading: false,
+      items: [],
+      activeItem: null,
+      currentSeasonId: null,
+      reader: {
+        mangadexId: null,
+        chapters: [],
+        currentChapterIndex: -1,
+        pages: [],
+        viewMode: 'scroll',
+        singlePageIndex: 0,
+        theme: 'dark'
+      }
+    };
 
-<footer class="mt-12 border-t border-zinc-800 bg-black py-6 text-center text-xs text-zinc-500">
-  <p>&copy; 2026 Fruit Anime. All rights reserved.</p>
-</footer>
+    const $ = id => document.getElementById(id);
+    const elements = {
+      btnAnimeMode: $('btnAnimeMode'),
+      btnMangaMode: $('btnMangaMode'),
+      searchInput: $('searchInput'),
+      btnClearSearch: $('btnClearSearch'),
+      posterGrid: $('posterGrid'),
+      emptyState: $('emptyState'),
+      btnResetSearch: $('btnResetSearch'),
+      btnLoadMore: $('btnLoadMore'),
+      
+      animePlayerModal: $('animePlayerModal'),
+      btnCloseAnimePlayer: $('btnCloseAnimePlayer'),
+      playerAnimeTitle: $('playerAnimeTitle'),
+      playerSeasonSelect: $('playerSeasonSelect'),
+      playerEpisodeSelect: $('playerEpisodeSelect'),
+      animePlayerIframe: $('animePlayerIframe'),
 
-<script>
-const animeStore = new Map();
-const mangaStore = new Map();
+      mangaReaderModal: $('mangaReaderModal'),
+      btnCloseReader: $('btnCloseReader'),
+      readerMangaTitle: $('readerMangaTitle'),
+      readerChapterSelect: $('readerChapterSelect'),
+      btnReaderPrevCh: $('btnReaderPrevCh'),
+      btnReaderNextCh: $('btnReaderNextCh'),
+      btnToggleViewMode: $('btnToggleViewMode'),
+      viewModeIcon: $('viewModeIcon'),
+      btnToggleTheme: $('btnToggleTheme'),
+      readerPagesContainer: $('readerPagesContainer'),
+      readerSinglePageFooter: $('readerSinglePageFooter'),
+      btnSinglePrevPage: $('btnSinglePrevPage'),
+      btnSingleNextPage: $('btnSingleNextPage'),
+      singlePageIndicator: $('singlePageIndicator')
+    };
 
-const viewHome = document.getElementById('view-home');
-const viewBrowse = document.getElementById('view-browse');
-const viewManga = document.getElementById('view-manga');
-const viewLibrary = document.getElementById('view-library');
-const viewDetails = document.getElementById('view-details');
-const viewPlayer = document.getElementById('view-player');
-const mainHeader = document.getElementById('main-header');
+    function init() {
+      setupEventListeners();
+      fetchVaultData(true);
+    }
 
-let currentAnime = null;
-let currentSelectedSeason = 1;
-let totalSeasonsCount = 1;
-let searchTimeout = null;
+    function setupEventListeners() {
+      elements.btnAnimeMode.addEventListener('click', () => switchVaultMode('ANIME'));
+      elements.btnMangaMode.addEventListener('click', () => switchVaultMode('MANGA'));
 
-const stateManga = { lib:false, page:1, search:"", sort:"TRENDING_DESC", country:"", genre:"", items:[], token:0 };
-let rsManga = null;
-
-const MANGA_MEDIA_QUERY = `id title{romaji english} coverImage{large color} averageScore status chapters volumes format genres description(asHtml:false) siteUrl countryOfOrigin startDate{year} externalLinks{site url type} relations{edges{relationType node{id type title{romaji english} format}}}`;
-const MANGA_LIST_QUERY = `query($page:Int,$search:String,$sort:[MediaSort],$country:CountryCode,$genre:String){Page(page:$page,perPage:24){pageInfo{hasNextPage} media(type:MANGA,format_not_in:[NOVEL],search:$search,sort:$sort,countryOfOrigin:$country,genre:$genre,isAdult:false){${MANGA_MEDIA_QUERY}}}}`;
-
-const MANGA_GENRES = ["Action","Adventure","Comedy","Drama","Fantasy","Horror","Mystery","Psychological","Romance","Sci-Fi","Slice of Life","Sports","Supernatural","Thriller"];
-const mangaGenreSelect = document.getElementById('manga-genre');
-MANGA_GENRES.forEach(g => mangaGenreSelect.append(new Option(g, g)));
-
-const getSavedManga = () => { try { return JSON.parse(localStorage.getItem("tonedot:lib") || "[]"); } catch { return []; } };
-const isMangaSaved = id => getSavedManga().some(x => x.id === id);
-function toggleSaveManga(m) {
-  const l = getSavedManga(), i = l.findIndex(x => x.id === m.id);
-  i >= 0 ? l.splice(i, 1) : l.unshift(m);
-  try { localStorage.setItem("tonedot:lib", JSON.stringify(l)); } catch {}
-}
-
-window.addEventListener('scroll', () => {
-  const y = window.scrollY;
-  if (y <= 0) mainHeader.classList.remove('-translate-y-full');
-  else mainHeader.classList.add('-translate-y-full');
-
-  const hero = document.getElementById('hero-banner-img');
-  if (!viewHome.classList.contains('hidden') && hero) {
-    if (y <= 150) hero.style.opacity = '1';
-    else hero.style.opacity = Math.max(0, 1 - (y - 150) / 700).toFixed(3);
-  }
-});
-
-function hideAllViews() {
-  [viewHome, viewBrowse, viewManga, viewLibrary, viewDetails, viewPlayer].forEach(v => v.classList.add('hidden'));
-  document.getElementById('streamrip-player').src = 'about:blank';
-  ['nav-home','nav-browse','nav-manga','nav-library'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.className = "text-zinc-400 hover:text-white transition";
-  });
-}
-const ACTIVE_NAV = "text-white border-b-2 border-white pb-0.5";
-
-function showHomeView() {
-  hideAllViews();
-  viewHome.classList.remove('hidden');
-  document.getElementById('nav-home').className = ACTIVE_NAV;
-  window.scrollTo({ top:0, behavior:'smooth' });
-}
-function showBrowseView() {
-  hideAllViews();
-  viewBrowse.classList.remove('hidden');
-  document.getElementById('nav-browse').className = ACTIVE_NAV;
-  window.scrollTo({ top:0, behavior:'smooth' });
-  fetchBrowseGrid('POPULARITY_DESC');
-}
-function showMangaView() {
-  hideAllViews();
-  viewManga.classList.remove('hidden');
-  document.getElementById('nav-manga').className = ACTIVE_NAV;
-  window.scrollTo({ top:0, behavior:'smooth' });
-  if (stateManga.items.length === 0) loadManga(true);
-}
-function showLibraryView() {
-  hideAllViews();
-  viewLibrary.classList.remove('hidden');
-  document.getElementById('nav-library').className = ACTIVE_NAV;
-  window.scrollTo({ top:0, behavior:'smooth' });
-  renderLibraryGrid();
-}
-function showDetailsView() {
-  hideAllViews();
-  viewDetails.classList.remove('hidden');
-  window.scrollTo({ top:0, behavior:'smooth' });
-}
-
-// ---------- AniList ----------
-async function fetchAniList(query, variables) {
-  for (let i = 0; i < 3; i++) {
-    try {
-      const res = await fetch("https://graphql.anilist.co", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json", Accept:"application/json" },
-        body: JSON.stringify({ query, variables })
+      let searchTimer;
+      elements.searchInput.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        elements.btnClearSearch.classList.toggle('hidden', !val);
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          state.query = val;
+          fetchVaultData(true);
+        }, 350);
       });
-      if (res.status === 429 || res.status >= 500) { await new Promise(r => setTimeout(r, 1200 * (i + 1))); continue; }
-      const j = await res.json();
-      if (!j.data) throw new Error((j.errors && j.errors[0].message) || "AniList API error");
-      return j.data;
-    } catch (e) {
-      if (i === 2) throw e;
-      await new Promise(r => setTimeout(r, 600 * (i + 1)));
+
+      elements.btnClearSearch.addEventListener('click', resetSearchField);
+      elements.btnResetSearch.addEventListener('click', resetSearchField);
+
+      elements.btnLoadMore.addEventListener('click', () => {
+        if (!state.isLoading && state.hasMorePages) {
+          state.page++;
+          renderSkeletons(false);
+          fetchVaultData(false);
+        }
+      });
+
+      elements.btnCloseAnimePlayer.addEventListener('click', closeAnimePlayerModal);
+      
+      elements.playerSeasonSelect.addEventListener('change', (e) => {
+        state.currentSeasonId = e.target.value;
+        updatePlayerEpisodesAndFrame();
+      });
+
+      elements.playerEpisodeSelect.addEventListener('change', () => {
+        updatePlayerEpisodesAndFrame();
+      });
+
+      elements.btnCloseReader.addEventListener('click', closeMangaReader);
+      elements.btnToggleViewMode.addEventListener('click', toggleReaderViewMode);
+      elements.btnToggleTheme.addEventListener('click', toggleReaderTheme);
+
+      elements.readerChapterSelect.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.value);
+        if (!isNaN(idx)) loadMangaChapterPages(idx);
+      });
+
+      elements.btnReaderPrevCh.addEventListener('click', () => {
+        if (state.reader.currentChapterIndex > 0) loadMangaChapterPages(state.reader.currentChapterIndex - 1);
+      });
+
+      elements.btnReaderNextCh.addEventListener('click', () => {
+        if (state.reader.currentChapterIndex < state.reader.chapters.length - 1) loadMangaChapterPages(state.reader.currentChapterIndex + 1);
+      });
+
+      elements.btnSinglePrevPage.addEventListener('click', () => {
+        if (state.reader.singlePageIndex > 0) { state.reader.singlePageIndex--; renderSinglePage(); }
+      });
+
+      elements.btnSingleNextPage.addEventListener('click', () => {
+        if (state.reader.singlePageIndex < state.reader.pages.length - 1) { state.reader.singlePageIndex++; renderSinglePage(); }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { closeAnimePlayerModal(); closeMangaReader(); }
+      });
     }
-  }
-  throw new Error("AniList is busy, try again shortly");
-}
 
-function renderMangaSkeletons(grid, n) {
-  for (let i = 0; i < n; i++) {
-    const sk = document.createElement("div");
-    sk.className = "bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden sk-cover aspect-[3/4]";
-    grid.append(sk);
-  }
-}
-
-function toggleMangaLibraryView() {
-  stateManga.lib = !stateManga.lib;
-  const btn = document.getElementById('manga-lib-btn');
-  btn.className = stateManga.lib
-    ? "bg-white text-black font-bold text-xs px-4 py-2 rounded-lg transition cursor-pointer"
-    : "bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer";
-  loadManga(true);
-}
-
-function fetchMangaGrid(sortOption = 'POPULARITY_DESC') {
-  stateManga.sort = sortOption;
-  document.getElementById('manga-sort').value = sortOption;
-  loadManga(true);
-}
-
-async function loadManga(reset) {
-  const grid = document.getElementById('manga-grid');
-  const statusEl = document.getElementById('manga-status');
-  const moreBtn = document.getElementById('manga-more');
-
-  const tk = ++stateManga.token;
-  if (reset) { stateManga.page = 1; stateManga.items = []; grid.replaceChildren(); }
-
-  if (stateManga.lib) {
-    stateManga.items = getSavedManga();
-    grid.replaceChildren();
-    stateManga.items.forEach(m => { mangaStore.set(m.id, m); grid.append(createMangaCard(m)); });
-    statusEl.textContent = stateManga.items.length ? "" : "No saved manga yet. Open a title and click Save.";
-    moreBtn.classList.add('hidden');
-    return;
-  }
-
-  statusEl.textContent = "";
-  moreBtn.classList.add('hidden');
-  renderMangaSkeletons(grid, 12);
-
-  const v = { page: stateManga.page, sort: [stateManga.sort] };
-  if (stateManga.search) { v.search = stateManga.search; v.sort = ["SEARCH_MATCH"]; }
-  if (stateManga.country) v.country = stateManga.country;
-  if (stateManga.genre) v.genre = stateManga.genre;
-
-  try {
-    const data = await fetchAniList(MANGA_LIST_QUERY, v);
-    if (tk !== stateManga.token) return;
-    grid.querySelectorAll(".sk-cover").forEach(n => n.remove());
-    data.Page.media.forEach(m => { stateManga.items.push(m); mangaStore.set(m.id, m); grid.append(createMangaCard(m)); });
-    statusEl.textContent = stateManga.items.length ? "" : "No manga found matching filters.";
-    if (data.Page.pageInfo.hasNextPage) moreBtn.classList.remove('hidden');
-    else moreBtn.classList.add('hidden');
-  } catch (e) {
-    if (tk !== stateManga.token) return;
-    grid.querySelectorAll(".sk-cover").forEach(n => n.remove());
-    statusEl.textContent = "Could not reach AniList API (" + e.message + ").";
-  }
-}
-
-function createMangaCard(m) {
-  const card = document.createElement("div");
-  card.className = "group relative bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 cursor-pointer hover:-translate-y-1 hover:border-zinc-500 transition duration-200 flex flex-col";
-  const titleStr = m.title.english || m.title.romaji;
-  card.innerHTML = `
-    <div class="aspect-[3/4] relative overflow-hidden bg-zinc-800">
-      <img src="${m.coverImage.large}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none"></div>
-      <div class="absolute bottom-3 left-3 right-3 text-center">
-        <h3 class="text-xs font-bold text-white truncate">${titleStr}</h3>
-        <div class="flex items-center justify-center space-x-2 mt-1 text-[10px] text-zinc-400"><span class="text-yellow-400">★ ${m.averageScore ? (m.averageScore / 10).toFixed(1) : '8.0'}</span></div>
-      </div>
-    </div>`;
-  card.addEventListener("click", () => openMangaDetail(m));
-  return card;
-}
-
-function openMangaDetail(m) {
-  const dlg = document.getElementById('manga-dlg');
-  const detailContainer = document.getElementById('manga-detail');
-  const titleStr = m.title.english || m.title.romaji;
-  const count = [m.chapters ? m.chapters + " chapters" : "", m.volumes ? m.volumes + " volumes" : ""].filter(Boolean).join(", ");
-  const facts = [(m.format || "MANGA"), (m.status || ""), count, m.averageScore ? "★ " + m.averageScore + "/100" : ""].filter(Boolean).join(" • ");
-  const cleanDesc = (m.description || "No description available.").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").trim();
-  const savedState = isMangaSaved(m.id);
-
-  detailContainer.innerHTML = `
-    <div class="grid grid-cols-1 sm:grid-cols-12 gap-6">
-      <div class="sm:col-span-4 space-y-4">
-        <img src="${m.coverImage.large}" class="w-full aspect-[3/4] object-cover rounded-xl border border-zinc-800 shadow-xl" />
-        <button id="manga-read-btn" class="w-full bg-white text-black font-bold text-xs py-3 px-4 rounded-xl flex items-center justify-center space-x-2 hover:bg-zinc-200 transition cursor-pointer uppercase"><i class="fa-solid fa-book-open text-xs"></i><span>Read Manga</span></button>
-        <button id="manga-save-btn" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 transition cursor-pointer"><i class="fa-solid fa-bookmark text-xs"></i><span>${savedState ? "Saved ✓" : "Save Manga"}</span></button>
-      </div>
-      <div class="sm:col-span-8 space-y-4">
-        <div>
-          <h2 class="text-2xl font-black text-white leading-tight">${titleStr}</h2>
-          <p class="text-xs text-zinc-400 mt-1">${facts}</p>
-        </div>
-        <p class="text-xs text-zinc-300 leading-relaxed max-h-48 overflow-y-auto pr-2 whitespace-pre-line">${cleanDesc}</p>
-        <div class="flex flex-wrap gap-1.5 pt-2">
-          ${(m.genres || []).map(g => `<span class="bg-zinc-800 border border-zinc-700 text-[10px] text-zinc-300 px-2.5 py-1 rounded-full">${g}</span>`).join('')}
-        </div>
-        <div class="pt-4 border-t border-zinc-800 flex flex-wrap gap-2 text-xs font-semibold">
-          <a href="${m.siteUrl}" target="_blank" rel="noopener" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg transition border border-zinc-700">AniList Page <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-1"></i></a>
-        </div>
-      </div>
-    </div>`;
-
-  document.getElementById('manga-read-btn').onclick = () => { dlg.close(); openMangaReader(m); };
-  const saveBtn = document.getElementById('manga-save-btn');
-  saveBtn.onclick = () => {
-    toggleSaveManga(m);
-    saveBtn.querySelector('span').innerText = isMangaSaved(m.id) ? "Saved ✓" : "Save Manga";
-  };
-  if (!dlg.open) dlg.showModal();
-}
-
-// NOTE: needs a backend exposing /api/mangadex and /api/image
-const mdFetch = async (q) => {
-  const r = await fetch("/api/mangadex?" + new URLSearchParams(q));
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.error || "MangaDex server error (" + r.status + ")");
-  return j;
-};
-
-async function openMangaReader(m) {
-  const rd = document.getElementById('manga-reader');
-  const rwrap = document.getElementById('manga-rwrap');
-  rwrap.innerHTML = `<p class="text-xs text-zinc-400 text-center py-12">Looking for readable chapters on MangaDex...</p>`;
-  document.getElementById('manga-reader-bar').innerHTML = '';
-  if (!rd.open) rd.showModal();
-  try {
-    const d = await mdFetch({ action:"chapters", al:m.id, title:m.title.english || m.title.romaji, alt:m.title.english ? m.title.romaji : "" });
-    rsManga = { m, d, cur:-1, saver: localStorage.getItem("tonedot:saver") === "1" };
-    renderMangaChaptersList();
-  } catch (e) {
-    rwrap.innerHTML = `<p class="text-xs text-red-400 text-center py-12">Couldn't load chapters: ${e.message}</p>`;
-  }
-}
-
-function renderMangaChaptersList() {
-  const { d, m } = rsManga;
-  const rwrap = document.getElementById('manga-rwrap');
-  document.getElementById('manga-reader-bar').innerHTML = '';
-  const last = localStorage.getItem("tonedot:" + m.id);
-  const readSet = new Set(JSON.parse(localStorage.getItem("tonedot:read:" + m.id) || "[]"));
-  const groups = new Map();
-
-  d.chapters.forEach((c, i) => {
-    const k = (d.seasons ? "Season " + c.s + " · " : "") + (c.vol ? "Volume " + c.vol : "Chapters");
-    if (!groups.has(k)) groups.set(k, []);
-    groups.get(k).push(i);
-  });
-
-  const titleStr = m.title.english || m.title.romaji;
-  let html = `
-    <div class="space-y-6">
-      <div>
-        <h2 class="text-2xl font-black text-white">${titleStr}</h2>
-        <p class="text-xs text-zinc-400 mt-1">Matched on MangaDex: ${d.chapters.length} English chapters.</p>
-      </div>`;
-
-  if (last !== null && d.chapters[+last]) {
-    html += `<button onclick="openMangaChapter(${+last})" class="bg-white text-black font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-zinc-200 transition cursor-pointer">Continue Chapter ${d.chapters[+last].ch || "?"}</button>`;
-  }
-
-  html += `<div class="space-y-3 pt-2">`;
-  groups.forEach((idxs, groupName) => {
-    html += `
-      <div class="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/60">
-        <div class="bg-zinc-800/80 px-4 py-2.5 font-bold text-xs text-white border-b border-zinc-800">${groupName} (${idxs.length} chapters)</div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-3">
-          ${idxs.map(i => {
-            const c = d.chapters[i];
-            const isRead = readSet.has(i);
-            return `
-              <button onclick="openMangaChapter(${i})" class="text-left p-2.5 rounded-lg border text-xs transition cursor-pointer ${
-                String(i) === last ? 'border-white bg-white text-black font-bold'
-                : isRead ? 'border-zinc-800/50 bg-black/40 text-zinc-500 hover:text-white'
-                : 'border-zinc-800 bg-black/80 text-zinc-300 hover:border-zinc-600 hover:text-white'}">
-                <div class="truncate">Ch. ${c.ch || "?"}${c.title ? ': ' + c.title : ''}</div>
-                <div class="text-[10px] text-zinc-500 mt-0.5">${c.pages} pages</div>
-              </button>`;
-          }).join('')}
-        </div>
-      </div>`;
-  });
-  html += `</div></div>`;
-  rwrap.innerHTML = html;
-}
-
-async function openMangaChapter(i) {
-  const { d, m } = rsManga;
-  const c = d.chapters[i];
-  if (!c) return;
-  rsManga.cur = i;
-
-  localStorage.setItem("tonedot:" + m.id, i);
-  const rk = "tonedot:read:" + m.id;
-  const rset = new Set(JSON.parse(localStorage.getItem(rk) || "[]"));
-  rset.add(i);
-  localStorage.setItem(rk, JSON.stringify([...rset]));
-
-  const rbar = document.getElementById('manga-reader-bar');
-  const rwrap = document.getElementById('manga-rwrap');
-  rwrap.innerHTML = `<p class="text-xs text-zinc-400 text-center py-12">Loading pages for Chapter ${c.ch || '?'}</p>`;
-
-  try {
-    const s = await mdFetch({ action:"pages", id:c.id });
-    const titleStr = m.title.english || m.title.romaji;
-    rbar.innerHTML = `
-      <button onclick="renderMangaChaptersList()" class="bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1.5 rounded-lg transition cursor-pointer">Chapters</button>
-      <button onclick="openMangaChapter(${i - 1})" ${!d.chapters[i - 1] ? 'disabled class="opacity-40 cursor-default px-2.5 py-1.5 bg-zinc-800 rounded-lg"' : 'class="bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 py-1.5 rounded-lg transition cursor-pointer"'}>Prev</button>
-      <span class="truncate max-w-[200px] text-zinc-200">${titleStr} • Ch. ${c.ch || '?'}</span>
-      <button onclick="openMangaChapter(${i + 1})" ${!d.chapters[i + 1] ? 'disabled class="opacity-40 cursor-default px-2.5 py-1.5 bg-zinc-800 rounded-lg"' : 'class="bg-zinc-800 hover:bg-zinc-700 text-white px-2.5 py-1.5 rounded-lg transition cursor-pointer"'}>Next</button>`;
-
-    const files = rsManga.saver ? s.saver : s.data;
-    rwrap.innerHTML = `
-      <div class="space-y-2">
-        <div id="manga-pages-container" class="space-y-2"></div>
-        ${d.chapters[i + 1] ? `<button onclick="openMangaChapter(${i + 1})" class="w-full py-3 bg-white text-black font-bold text-xs rounded-xl hover:bg-zinc-200 transition cursor-pointer">Next Chapter &rsaquo;</button>` : `<p class="text-center text-xs text-zinc-500 py-6">End of chapter.</p>`}
-      </div>`;
-
-    const pagesContainer = document.getElementById('manga-pages-container');
-    files.forEach(f => pagesContainer.append(renderMangaPageImg(s, f, rsManga.saver)));
-    document.getElementById('manga-reader').scrollTo({ top:0 });
-  } catch (e) {
-    rwrap.innerHTML = `<p class="text-xs text-red-400 text-center py-12">Could not load chapter pages: ${e.message}</p>`;
-  }
-}
-
-function renderMangaPageImg(s, f, saver, tries = 0) {
-  const url = s.base + (saver ? "/data-saver/" : "/data/") + s.hash + "/" + f;
-  const img = document.createElement("img");
-  img.className = "w-full rounded-lg bg-zinc-900 min-h-[300px] object-contain";
-  img.alt = "";
-  img.loading = "lazy";
-  img.onerror = () => {
-    if (tries < 2) {
-      const t = tries++;
-      setTimeout(() => { img.src = "/api/image?u=" + encodeURIComponent(url) + "&r=" + (t + 1); }, 700 * (t + 1));
-      return;
+    function resetSearchField() {
+      elements.searchInput.value = '';
+      elements.btnClearSearch.classList.add('hidden');
+      state.query = '';
+      fetchVaultData(true);
     }
-    const b = document.createElement("button");
-    b.className = "w-full p-8 border border-dashed border-zinc-800 text-xs text-zinc-400 rounded-lg cursor-pointer";
-    b.innerText = "Failed to load page. Click to retry.";
-    b.onclick = () => b.replaceWith(renderMangaPageImg(s, f, saver));
-    img.replaceWith(b);
-  };
-  img.src = "/api/image?u=" + encodeURIComponent(url);
-  return img;
-}
 
-document.getElementById('manga-sort').addEventListener('change', e => { stateManga.sort = e.target.value; loadManga(true); });
-document.getElementById('manga-origin').addEventListener('change', e => { stateManga.country = e.target.value; loadManga(true); });
-document.getElementById('manga-genre').addEventListener('change', e => { stateManga.genre = e.target.value; loadManga(true); });
-let mangaTimer;
-document.getElementById('manga-q').addEventListener('input', e => {
-  clearTimeout(mangaTimer);
-  mangaTimer = setTimeout(() => { stateManga.search = e.target.value.trim(); loadManga(true); }, 400);
-});
-document.getElementById('manga-more').addEventListener('click', () => { stateManga.page++; loadManga(false); });
-
-// ---------- Anime details ----------
-function openAnimeDetails(anime) {
-  currentAnime = anime;
-  currentSelectedSeason = 1;
-  const totalEps = anime.episodes || 12;
-  totalSeasonsCount = Math.max(1, Math.min(4, Math.ceil(totalEps / 24)));
-
-  hideAllViews();
-  viewDetails.classList.remove('hidden');
-  window.scrollTo({ top:0 });
-
-  document.getElementById('detail-backdrop').src = anime.banner || anime.poster;
-  document.getElementById('detail-poster').src = anime.poster || anime.banner;
-  document.getElementById('detail-title').innerText = anime.title;
-  document.getElementById('detail-synopsis').innerText = anime.synopsis || 'No synopsis available for this title.';
-  document.getElementById('detail-year').innerHTML = `<i class="fa-regular fa-calendar text-[11px]"></i> ${anime.year || '2026'}`;
-  document.getElementById('detail-episodes-pill').innerText = `${totalEps} Episodes`;
-  document.getElementById('detail-type-pill').innerText = anime.type || 'TV';
-  document.getElementById('detail-format').innerText = anime.type || 'TV';
-  document.getElementById('detail-sidebar-episodes').innerText = totalEps;
-  document.getElementById('detail-views').innerText = `👁 ${anime.views || '1.2M'}`;
-  document.getElementById('detail-season').innerText = anime.season || 'Autumn';
-  document.getElementById('detail-status').innerText = anime.status || 'Releasing';
-
-  updateLibraryButtonUI();
-  renderSeasonTabs();
-  renderEpisodesForSeason(1);
-}
-
-function renderSeasonTabs() {
-  const container = document.getElementById('seasons-tabs-container');
-  container.innerHTML = '';
-  for (let s = 1; s <= totalSeasonsCount; s++) {
-    const isActive = s === currentSelectedSeason;
-    container.innerHTML += `
-      <button onclick="selectSeason(${s})" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center space-x-2 border cursor-pointer ${isActive ? 'bg-white text-black border-white shadow-md' : 'bg-zinc-900/90 text-zinc-300 border-zinc-800 hover:border-zinc-600 hover:text-white'}">
-        <span>Season ${s}</span>
-      </button>`;
-  }
-}
-
-function selectSeason(n) {
-  currentSelectedSeason = n;
-  renderSeasonTabs();
-  renderEpisodesForSeason(n);
-}
-
-function renderEpisodesForSeason(seasonNum) {
-  const epContainer = document.getElementById('episodes-container');
-  epContainer.innerHTML = '';
-  const totalEps = currentAnime ? (currentAnime.episodes || 12) : 12;
-  const epsPerSeason = Math.ceil(totalEps / totalSeasonsCount);
-  const startEp = (seasonNum - 1) * epsPerSeason + 1;
-  const endEp = Math.min(totalEps, seasonNum * epsPerSeason);
-  document.getElementById('tab-ep-count').innerText = `${Math.max(0, endEp - startEp + 1)} Eps`;
-
-  let html = '';
-  for (let i = startEp; i <= endEp; i++) {
-    html += `
-      <div onclick="launchPlayerUI(currentAnime, ${seasonNum}, ${i})" class="flex items-center space-x-3 p-2 rounded-xl border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 hover:border-zinc-600 cursor-pointer transition group">
-        <div class="relative aspect-video w-32 rounded-lg overflow-hidden flex-shrink-0">
-          <img src="${currentAnime.banner || currentAnime.poster}" class="w-full h-full object-cover group-hover:scale-105 transition" />
-          <span class="absolute top-1 left-1 bg-black/80 text-[10px] text-white px-1.5 py-0.5 rounded font-bold">S${seasonNum} E${i}</span>
-          <span class="absolute bottom-1 left-1 bg-black/80 text-[9px] text-zinc-300 px-1 rounded flex items-center gap-1"><i class="fa-regular fa-rectangle-list text-[8px]"></i> SUB</span>
-        </div>
-        <div class="flex-1 min-w-0">
-          <h4 class="text-xs font-bold text-zinc-200 group-hover:text-white transition truncate">Episode ${i}</h4>
-          <p class="text-[10px] text-zinc-400 mt-0.5">24 min</p>
-        </div>
-      </div>`;
-  }
-  epContainer.innerHTML = html;
-}
-
-// ---------- Player ----------
-function launchPlayerUI(anime, seasonNum = 1, epNum = 1) {
-  currentAnime = anime;
-  hideAllViews();
-  viewPlayer.classList.remove('hidden');
-  window.scrollTo({ top:0 });
-  const animeId = anime.id || encodeURIComponent(anime.title);
-  document.getElementById('streamrip-player').src = `https://streamrip.fun/play?type=anime&id=${animeId}&ep=${epNum}`;
-  document.getElementById('player-anime-title-header').innerText = anime.title;
-  document.getElementById('player-season-ep-badge').innerText = `Season ${seasonNum} • Episode ${epNum}`;
-}
-
-// ---------- Library ----------
-function getLibrary() {
-  try { return JSON.parse(localStorage.getItem('fruit_anime_library')) || []; } catch (e) { return []; }
-}
-
-function toggleLibraryBookmark() {
-  if (!currentAnime) return;
-  const library = getLibrary();
-  const idx = library.findIndex(item => item.title === currentAnime.title);
-  if (idx > -1) library.splice(idx, 1); else library.unshift(currentAnime);
-  try { localStorage.setItem('fruit_anime_library', JSON.stringify(library)); } catch (e) {}
-  updateLibraryButtonUI();
-}
-
-function updateLibraryButtonUI() {
-  if (!currentAnime) return;
-  const isBookmarked = getLibrary().some(item => item.title === currentAnime.title);
-  const textEl = document.getElementById('library-toggle-text');
-  const btnEl = document.getElementById('library-toggle-btn');
-  if (isBookmarked) {
-    textEl.innerText = "In Library (Remove)";
-    btnEl.className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 transition cursor-pointer";
-  } else {
-    textEl.innerText = "Add to Library";
-    btnEl.className = "w-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 transition cursor-pointer";
-  }
-}
-
-function clearLibrary() {
-  localStorage.removeItem('fruit_anime_library');
-  renderLibraryGrid();
-}
-
-function renderLibraryGrid() {
-  const library = getLibrary();
-  const grid = document.getElementById('library-anime-grid');
-  if (library.length === 0) {
-    grid.innerHTML = `<p class="col-span-full text-center text-sm text-zinc-500 py-12">Your library is empty. Click "Add to Library" on any anime page to save it here.</p>`;
-    return;
-  }
-  grid.innerHTML = '';
-  library.forEach(item => grid.appendChild(createAnimeCardElement(item)));
-}
-
-// ---------- Anime browse / search ----------
-const ANIME_FIELDS = `id title{english romaji} coverImage{extraLarge} bannerImage averageScore episodes format genres description season status startDate{year}`;
-
-async function fetchBrowseGrid(sortOption = 'POPULARITY_DESC') {
-  const grid = document.getElementById('browse-anime-grid');
-  grid.innerHTML = `<p class="col-span-full text-center text-sm text-zinc-400 py-12">Loading catalog...</p>`;
-  const query = `query($sort:[MediaSort]){Page(page:1,perPage:18){media(type:ANIME,isAdult:false,sort:$sort){${ANIME_FIELDS}}}}`;
-  try {
-    const data = await fetchAniList(query, { sort: [sortOption] });
-    renderAnimeGridCards(grid, data.Page.media);
-  } catch (err) {
-    grid.innerHTML = `<p class="col-span-full text-center text-sm text-red-400 py-12">Failed to load browse menu.</p>`;
-  }
-}
-
-function handleSearchInput(e) {
-  const q = e.target.value.trim();
-  clearTimeout(searchTimeout);
-
-  if (q.length === 0) {
-    document.getElementById('search-results-section').classList.add('hidden');
-    document.getElementById('hero-banner-container').classList.remove('hidden');
-    document.getElementById('hero-details-section').classList.remove('hidden');
-    document.getElementById('top-weekly-section').classList.remove('hidden');
-    return;
-  }
-
-  if (viewHome.classList.contains('hidden')) showHomeView();
-  searchTimeout = setTimeout(() => executeRealSearch(q), 300);
-}
-
-async function executeRealSearch(searchTerm) {
-  const section = document.getElementById('search-results-section');
-  const grid = document.getElementById('search-anime-grid');
-  const heading = document.getElementById('search-results-heading');
-
-  document.getElementById('hero-banner-container').classList.add('hidden');
-  document.getElementById('hero-details-section').classList.add('hidden');
-  document.getElementById('top-weekly-section').classList.add('hidden');
-
-  section.classList.remove('hidden');
-  heading.innerText = `Searching for "${searchTerm}"...`;
-  grid.innerHTML = `<p class="col-span-full text-center text-sm text-zinc-400 py-8">Searching anime database...</p>`;
-
-  const query = `query($search:String){Page(page:1,perPage:12){media(search:$search,type:ANIME,isAdult:false){${ANIME_FIELDS}}}}`;
-  try {
-    const data = await fetchAniList(query, { search: searchTerm });
-    const list = data.Page.media;
-    heading.innerText = `Results for "${searchTerm}" (${list.length})`;
-    if (!list.length) {
-      grid.innerHTML = `<p class="col-span-full text-center text-sm text-zinc-400 py-8">No anime found matching your search.</p>`;
-      return;
+    function switchVaultMode(newMode) {
+      if (state.mode === newMode) return;
+      state.mode = newMode;
+      if (newMode === 'ANIME') {
+        elements.btnAnimeMode.className = "px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 bg-white text-black shadow";
+        elements.btnMangaMode.className = "px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 text-neutral-400 hover:text-white";
+      } else {
+        elements.btnMangaMode.className = "px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 bg-white text-black shadow";
+        elements.btnAnimeMode.className = "px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 text-neutral-400 hover:text-white";
+      }
+      fetchVaultData(true);
     }
-    renderAnimeGridCards(grid, list);
-  } catch (err) {
-    grid.innerHTML = `<p class="col-span-full text-center text-sm text-red-400 py-8">Search error. Please try again.</p>`;
-  }
-}
 
-function createAnimeCardElement(item) {
-  const animeObj = {
-    id: item.id,
-    title: (item.title && typeof item.title === 'object') ? (item.title.english || item.title.romaji) : (item.title || 'Anime Title'),
-    banner: item.bannerImage || item.banner || (item.coverImage ? item.coverImage.extraLarge : item.poster || ''),
-    poster: item.coverImage ? item.coverImage.extraLarge : (item.poster || ''),
-    year: item.startDate ? (item.startDate.year || '2026') : (item.year || '2026'),
-    episodes: item.episodes || 12,
-    type: item.format || item.type || 'TV',
-    views: item.views || "1.2M",
-    season: item.season || 'Autumn',
-    status: item.status || 'Releasing',
-    synopsis: item.description ? item.description.replace(/<[^>]*>?/gm, '') : (item.synopsis || '')
-  };
-  animeStore.set(item.id, animeObj);
+    function renderSkeletons(reset = true) {
+      const skeletons = Array(20).fill(0).map(() => `<div class="poster-card rounded skeleton-shimmer border border-white/5 relative overflow-hidden"></div>`).join('');
+      if (reset) elements.posterGrid.innerHTML = skeletons;
+      else elements.posterGrid.insertAdjacentHTML('beforeend', skeletons);
+    }
 
-  const card = document.createElement('div');
-  card.className = "group relative bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 cursor-pointer hover:-translate-y-1 hover:border-zinc-500 transition duration-200";
-  const rating = item.averageScore ? (item.averageScore / 10).toFixed(1) : '8.0';
-  card.innerHTML = `
-    <div class="aspect-[3/4] relative">
-      <img src="${animeObj.poster}" class="w-full h-full object-cover" />
-      <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
-      <div class="absolute bottom-3 left-3 right-3 text-center">
-        <h3 class="text-xs font-bold text-white truncate">${animeObj.title}</h3>
-        <div class="flex items-center justify-center space-x-2 mt-1 text-[10px] text-zinc-400"><span class="text-yellow-400">★ ${rating}</span></div>
-      </div>
-    </div>`;
-  card.onclick = () => openAnimeDetails(animeObj);
-  return card;
-}
+    async function fetchVaultData(reset = true) {
+      if (state.isLoading) return;
+      state.isLoading = true;
+      if (reset) { state.page = 1; state.items = []; renderSkeletons(true); }
 
-function renderAnimeGridCards(container, list) {
-  container.innerHTML = '';
-  list.forEach(item => container.appendChild(createAnimeCardElement(item)));
-}
+      const variables = { type: state.mode, page: state.page, perPage: 30 };
+      if (state.query) variables.search = state.query;
 
-async function fetchTopGrid() {
-  const query = `query{Page(page:1,perPage:12){media(type:ANIME,isAdult:false,sort:POPULARITY_DESC){${ANIME_FIELDS}}}}`;
-  try {
-    const data = await fetchAniList(query, {});
-    const list = data.Page.media;
-    if (list.length > 0) {
-      const h = list[0];
-      document.getElementById('hero-title').innerText = h.title.english || h.title.romaji;
-      document.getElementById('hero-rating').innerText = h.averageScore ? (h.averageScore / 10).toFixed(1) : 'N/A';
-      document.getElementById('hero-episodes').innerText = `${h.episodes || 170} Episodes`;
-      document.getElementById('hero-type').innerText = h.format || 'TV';
-      document.getElementById('hero-synopsis').innerText = h.description ? h.description.replace(/<[^>]*>?/gm, '') : '';
-      if (h.bannerImage) document.getElementById('hero-banner-img').src = h.bannerImage;
-      document.getElementById('hero-play-btn').onclick = () => {
-        openAnimeDetails({
-          id: h.id,
-          title: h.title.english || h.title.romaji,
-          banner: h.bannerImage || h.coverImage.extraLarge,
-          poster: h.coverImage.extraLarge,
-          year: h.startDate ? h.startDate.year : '2026',
-          episodes: h.episodes || 170,
-          type: h.format || 'TV',
-          views: '1.8M',
-          season: h.season || 'Autumn',
-          status: h.status || 'Releasing',
-          synopsis: h.description ? h.description.replace(/<[^>]*>?/gm, '') : ''
+      try {
+        const response = await fetch(ANILIST_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ query: ANILIST_VAULT_QUERY, variables })
         });
-      };
+        if (!response.ok) throw new Error("AniList response error");
+        const json = await response.json();
+        const pageData = json.data?.Page;
+        const newItems = (pageData?.media || []).map(item => ({ ...item, type: state.mode }));
+        state.hasMorePages = pageData?.pageInfo?.hasNextPage || false;
+        state.items = reset ? newItems : [...state.items, ...newItems];
+        renderPosterGrid();
+        elements.btnLoadMore.classList.toggle('hidden', !state.hasMorePages);
+      } catch (err) {
+        if (state.mode === 'ANIME') await fetchJikanFallback(reset);
+        else renderPosterGrid();
+      } finally {
+        state.isLoading = false;
+      }
     }
-    renderAnimeGridCards(document.getElementById('top-anime-grid'), list);
-  } catch (e) {
-    console.warn('Could not load trending grid from API', e);
-  }
-}
 
-fetchTopGrid();
-</script>
+    async function fetchJikanFallback(reset) {
+      try {
+        const url = state.query ? `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(state.query)}&page=${state.page}&limit=24` : `https://api.jikan.moe/v4/top/anime?page=${state.page}&limit=24`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Jikan Error");
+        const json = await res.json();
+        const fallbackItems = (json.data || []).map(item => ({
+          id: item.mal_id,
+          idMal: item.mal_id,
+          type: 'ANIME',
+          title: { english: item.title_english || item.title, romaji: item.title_japanese || item.title },
+          coverImage: { extraLarge: item.images?.jpg?.large_image_url, large: item.images?.jpg?.image_url },
+          bannerImage: item.images?.jpg?.large_image_url,
+          episodes: item.episodes,
+          relations: { edges: [] },
+          description: item.synopsis,
+          trailer: item.trailer?.youtube_id ? { id: item.trailer.youtube_id, site: 'youtube' } : null,
+          studios: { nodes: item.studios ? item.studios.map(s => ({ name: s.name })) : [] }
+        }));
+        state.hasMorePages = json.pagination?.has_next_page || false;
+        state.items = reset ? fallbackItems : [...state.items, ...fallbackItems];
+        renderPosterGrid();
+        elements.btnLoadMore.classList.toggle('hidden', !state.hasMorePages);
+      } catch (e) {
+        if (reset) elements.posterGrid.innerHTML = '';
+        elements.emptyState.classList.remove('hidden');
+        elements.btnLoadMore.classList.add('hidden');
+      }
+    }
+
+    function renderPosterGrid() {
+      if (!state.items || state.items.length === 0) {
+        elements.posterGrid.innerHTML = '';
+        elements.emptyState.classList.remove('hidden');
+        elements.btnLoadMore.classList.add('hidden');
+        return;
+      }
+      elements.emptyState.classList.add('hidden');
+      elements.posterGrid.innerHTML = state.items.map((item, index) => `
+        <div data-index="${index}" class="poster-card group relative bg-black/20 backdrop-blur-sm rounded overflow-hidden border border-white/10 cursor-pointer transition-transform duration-200 hover:scale-[1.03] hover:z-20 hover:border-white/40 shadow-lg">
+          <img src="${item.coverImage?.extraLarge || item.coverImage?.large || ''}" alt="${escapeHtml(item.title?.english || '')}" loading="lazy" class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90 pointer-events-none">
+        </div>
+      `).join('');
+
+      elements.posterGrid.querySelectorAll('.poster-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const idx = parseInt(card.getAttribute('data-index'));
+          const item = state.items[idx];
+          if (item) {
+            if (item.type === 'MANGA') {
+              openMangaReaderModal(item);
+            } else {
+              openAnimePlayerModal(item);
+            }
+          }
+        });
+      });
+    }
+
+    function openAnimePlayerModal(item) {
+      state.activeItem = item;
+      const title = item.title?.english || item.title?.romaji || 'Untitled Anime';
+      elements.playerAnimeTitle.textContent = title;
+
+      const seasons = [{
+        id: item.id || item.idMal || 1,
+        title: title,
+        episodes: item.episodes || 12
+      }];
+
+      if (item.relations?.edges) {
+        item.relations.edges.forEach(edge => {
+          if (['SEQUEL', 'PREQUEL'].includes(edge.relationType) && edge.node?.type === 'ANIME') {
+            seasons.push({
+              id: edge.node.id || edge.node.idMal,
+              title: edge.node.title?.english || edge.node.title?.romaji || 'Season',
+              episodes: edge.node.episodes || 12
+            });
+          }
+        });
+      }
+
+      state.currentSeasonId = seasons[0].id;
+      elements.playerSeasonSelect.innerHTML = seasons.map((s, idx) => `
+        <option value="${s.id}">Season ${idx + 1} (${escapeHtml(s.title)})</option>
+      `).join('');
+
+      updatePlayerEpisodesAndFrame();
+      elements.animePlayerModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function updatePlayerEpisodesAndFrame() {
+      const item = state.activeItem;
+      let totalEpisodes = 12;
+
+      if (item.id == state.currentSeasonId || item.idMal == state.currentSeasonId) {
+        totalEpisodes = item.episodes || 12;
+      } else if (item.relations?.edges) {
+        const found = item.relations.edges.find(e => (e.node?.id == state.currentSeasonId || e.node?.idMal == state.currentSeasonId));
+        if (found && found.node?.episodes) {
+          totalEpisodes = found.node.episodes;
+        }
+      }
+
+      let optionsHtml = '';
+      for (let i = 1; i <= totalEpisodes; i++) {
+        optionsHtml += `<option value="${i}">Ep ${i}</option>`;
+      }
+      elements.playerEpisodeSelect.innerHTML = optionsHtml;
+
+      const selectedEp = elements.playerEpisodeSelect.value || 1;
+      elements.animePlayerIframe.src = `https://streamrip.fun/play?type=anime&id=${state.currentSeasonId}&ep=${selectedEp}`;
+    }
+
+    function closeAnimePlayerModal() {
+      elements.animePlayerModal.classList.add('hidden');
+      document.body.style.overflow = '';
+      elements.animePlayerIframe.src = '';
+    }
+
+    async function openMangaReaderModal(item) {
+      state.activeItem = item;
+      elements.readerMangaTitle.textContent = item.title?.english || item.title?.romaji || 'Manga';
+      elements.mangaReaderModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      elements.readerPagesContainer.innerHTML = `<div class="text-center py-20 space-y-3"><i class="fa-solid fa-circle-notch fa-spin text-xl text-neutral-400"></i><p class="text-xs text-neutral-400">Searching MangaDex...</p></div>`;
+
+      try {
+        const cleanTitle = (item.title?.english || item.title?.romaji || '').replace(/[^\w\s]/gi, '').trim();
+        const searchRes = await fetch(`https://api.mangadex.org/manga?title=${encodeURIComponent(cleanTitle)}&limit=1`);
+        const searchJson = await searchRes.json();
+        if (!searchJson.data?.length) throw new Error("Manga title not found on MangaDex.");
+
+        const mangadexId = searchJson.data[0].id;
+        state.reader.mangadexId = mangadexId;
+        const feedRes = await fetch(`https://api.mangadex.org/manga/${mangadexId}/feed?translatedLanguage[]=en&order[chapter]=asc&limit=500`);
+        const feedJson = await feedRes.json();
+        if (!feedJson.data?.length) throw new Error("No English chapters available.");
+
+        const chapterList = [];
+        const seenChapters = new Set();
+        feedJson.data.forEach(ch => {
+          const num = ch.attributes.chapter || '?';
+          if (!seenChapters.has(num)) {
+            seenChapters.add(num);
+            chapterList.push({ id: ch.id, chapter: num, title: ch.attributes.title || `Chapter ${num}` });
+          }
+        });
+
+        chapterList.sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter));
+        state.reader.chapters = chapterList;
+        elements.readerChapterSelect.innerHTML = chapterList.map((ch, i) => `<option value="${i}">Chapter ${ch.chapter}: ${escapeHtml(ch.title)}</option>`).join('');
+        loadMangaChapterPages(0);
+      } catch (err) {
+        elements.readerChapterSelect.innerHTML = `<option value="">Unavailable</option>`;
+        elements.readerPagesContainer.innerHTML = `<div class="text-center py-20 space-y-2 max-w-md mx-auto"><i class="fa-solid fa-circle-exclamation text-xl text-neutral-400"></i><h4 class="text-xs font-bold text-neutral-300">Pages Unavailable</h4><p class="text-xs text-neutral-400">${escapeHtml(err.message)}</p></div>`;
+      }
+    }
+
+    async function loadMangaChapterPages(chapterIndex) {
+      if (chapterIndex < 0 || chapterIndex >= state.reader.chapters.length) return;
+      state.reader.currentChapterIndex = chapterIndex;
+      const ch = state.reader.chapters[chapterIndex];
+      elements.readerChapterSelect.value = chapterIndex;
+      elements.btnReaderPrevCh.disabled = (chapterIndex === 0);
+      elements.btnReaderNextCh.disabled = (chapterIndex === state.reader.chapters.length - 1);
+
+      elements.readerPagesContainer.innerHTML = `<div class="text-center py-20 space-y-3"><i class="fa-solid fa-circle-notch fa-spin text-xl text-neutral-400"></i><p class="text-xs text-neutral-400">Loading Chapter ${escapeHtml(ch.chapter)}...</p></div>`;
+
+      try {
+        const atHomeRes = await fetch(`https://api.mangadex.org/at-home/server/${ch.id}`);
+        const atHomeJson = await atHomeRes.json();
+        state.reader.pages = atHomeJson.chapter.data.map(f => `${atHomeJson.baseUrl}/data/${atHomeJson.chapter.hash}/${f}`);
+        state.reader.singlePageIndex = 0;
+        state.reader.viewMode === 'scroll' ? renderWebtoonScroll() : renderSinglePage();
+      } catch (err) {
+        elements.readerPagesContainer.innerHTML = `<p class="text-center text-neutral-400 text-xs py-16">Error loading Chapter ${escapeHtml(ch.chapter)}.</p>`;
+      }
+    }
+
+    function renderWebtoonScroll() {
+      elements.readerSinglePageFooter.classList.add('hidden');
+      elements.readerPagesContainer.innerHTML = state.reader.pages.map((url, i) => `<img src="${escapeHtml(url)}" alt="Page ${i + 1}" loading="lazy" class="w-full max-w-2xl mx-auto block my-2 border border-white/10 shadow-lg">`).join('');
+    }
+
+    function renderSinglePage() {
+      elements.readerSinglePageFooter.classList.remove('hidden');
+      const total = state.reader.pages.length;
+      const current = state.reader.singlePageIndex;
+      elements.singlePageIndicator.textContent = `Page ${current + 1} / ${total}`;
+      elements.btnSinglePrevPage.disabled = (current === 0);
+      elements.btnSingleNextPage.disabled = (current === total - 1);
+      elements.readerPagesContainer.innerHTML = `<div class="flex items-center justify-center min-h-[70vh]"><img src="${escapeHtml(state.reader.pages[current])}" alt="Page ${current + 1}" class="max-h-[80vh] w-auto object-contain border border-white/10 shadow-lg"></div>`;
+    }
+
+    function toggleReaderViewMode() {
+      state.reader.viewMode = state.reader.viewMode === 'scroll' ? 'page' : 'scroll';
+      elements.viewModeIcon.className = state.reader.viewMode === 'scroll' ? "fa-solid fa-scroll" : "fa-solid fa-book-open";
+      state.reader.viewMode === 'scroll' ? renderWebtoonScroll() : renderSinglePage();
+    }
+
+    function toggleReaderTheme() {
+      const modal = elements.mangaReaderModal;
+      if (state.reader.theme === 'dark') {
+        state.reader.theme = 'gray';
+        modal.className = "fixed inset-0 z-50 hidden flex flex-col reader-theme-gray transition-colors duration-200";
+      } else if (state.reader.theme === 'gray') {
+        state.reader.theme = 'light';
+        modal.className = "fixed inset-0 z-50 hidden flex flex-col reader-theme-light transition-colors duration-200";
+      } else {
+        state.reader.theme = 'dark';
+        modal.className = "fixed inset-0 z-50 hidden flex flex-col reader-theme-dark transition-colors duration-200";
+      }
+    }
+
+    function closeMangaReader() {
+      elements.mangaReaderModal.classList.add('hidden');
+      document.body.style.overflow = '';
+      elements.readerPagesContainer.innerHTML = '';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
