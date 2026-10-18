@@ -3,11 +3,11 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { handleMangadex, handleImage } from "./lib/mangadex.js";
+import { handleManga, handleImage } from "./lib/manga.js";
 
 process.on("unhandledRejection", () => {});
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const routes = { "/api/mangadex": handleMangadex, "/api/image": handleImage };
+const routes = { "/api/manga": handleManga, "/api/mangadex": handleManga, "/api/image": handleImage };
 
 http.createServer(async (req, res) => {
   const u = new URL(req.url, "http://localhost");
