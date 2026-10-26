@@ -708,5 +708,51 @@
 
     window.addEventListener('DOMContentLoaded', init);
   </script>
+
+<script>
+/* ADSM cursor bridge: hides this page's own cursor and reports the mouse to the parent page (index.html),
+   which draws the custom cursor on top. Safe to leave in when the page is opened on its own. */
+(function () {
+  if (window.parent === window) return;
+  var CSS = '*,*::before,*::after{cursor:none !important}';
+  function addStyle(d) { try { if (d.__adsmStyle) return; d.__adsmStyle = 1; var s = d.createElement('style'); s.textContent = CSS; (d.head || d.documentElement).appendChild(s); } catch (e) {} }
+  function kind(t) {
+    if (!t || !t.closest) return 'arrow';
+    if (t.closest('button:disabled,[disabled]')) return 'no';
+    if (t.closest('input:not([type=button]):not([type=checkbox]):not([type=range]):not([type=radio]):not([type=submit]),textarea,[contenteditable=""],[contenteditable="true"]')) return 'text';
+    if (t.closest('a[href],button,select,summary,label,[role="button"],[onclick],.zone-item,[class*="cursor-pointer"]')) return 'hand';
+    return 'arrow';
+  }
+  function send(x, y, k) { window.parent.postMessage({ type: 'fruiti-cursor', x: x, y: y, kind: k }, '*'); }
+  function hide() { window.parent.postMessage({ type: 'fruiti-cursor', hide: true }, '*'); }
+  var acked = false, docs = [];
+  window.addEventListener('message', function (e) {
+    if (e.data && e.data.type === 'fruiti-cursor-ack' && !acked) { acked = true; docs.forEach(addStyle); }
+  });
+  function hook(d, ox) {
+    docs.push(d); if (acked) addStyle(d); // own cursor is hidden only once index.html confirms it is drawing the custom one
+    d.addEventListener('mousemove', function (e) {
+      var r = ox ? ox() : { left: 0, top: 0 };
+      send(r.left + e.clientX, r.top + e.clientY, kind(e.target));
+    }, true);
+    d.addEventListener('mouseleave', hide);
+  }
+  hook(document);
+  // Same-origin child frames (e.g. the game viewer) are followed too
+  function hookChild(f) {
+    var seen = null;
+    setInterval(function () {
+      var d = null;
+      try { d = f.contentDocument; void d.body; } catch (e) { d = null; }
+      if (!d || !d.documentElement || d === seen) return;
+      seen = d;
+      hook(d, function () { return f.getBoundingClientRect(); });
+    }, 500);
+  }
+  var done = new WeakSet();
+  function scan() { document.querySelectorAll('iframe').forEach(function (f) { if (!done.has(f)) { done.add(f); hookChild(f); } }); }
+  scan(); setInterval(scan, 700);
+})();
+</script>
 </body>
 </html>
