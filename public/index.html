@@ -1,714 +1,373 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>anime</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<title>Manga — read free online, in HD</title>
+<style>
+:root{--bg:#000;--surface:#121214;--line:#26262b;--text:#f2f2f4;--muted:#9a9aa5;--accent:#ff4f7b;--sb:232px}
+*{box-sizing:border-box;margin:0}
+html{overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font:16px/1.5 "Trebuchet MS","Segoe UI",system-ui,sans-serif;padding-left:var(--sb);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  
-  <!-- Inter Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+/* sidebar */
+.side{position:fixed;left:12px;top:12px;bottom:12px;width:204px;z-index:6;background:#0c0c0e;border:1px solid var(--line);border-radius:18px;padding:16px 12px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+nav.main{display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+nav.main a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:15px;font-weight:600;transition:background .15s,color .15s}
+nav.main a svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav.main a:hover{background:var(--surface);color:var(--text)}
+nav.main a.on{background:var(--accent);color:#fff}
+.burger{display:none;position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:10px;z-index:7;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:18px}
 
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            vaultBg: 'transparent',
-            vaultPanel: 'transparent',
-            vaultCard: 'transparent',
-            vaultBorder: 'rgba(255, 255, 255, 0.1)',
-          },
-          fontFamily: {
-            sans: ['GNF', 'Inter', 'sans-serif'],
-            mono: ['GNF', 'Inter', 'sans-serif'],
-          }
-        }
-      }
-    }
-  </script>
+.btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 16px;font-weight:700;display:inline-block}
+.btn.alt{background:var(--surface);color:var(--text);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+main{max-width:1200px;margin:auto;padding:0 20px 60px;min-height:70vh}
+h2{font-size:22px;margin:32px 0 16px;display:flex;justify-content:space-between;align-items:baseline}
+h2 small,.muted{font-size:14px;color:var(--muted);font-weight:400}
+.empty{color:var(--muted);padding:40px 0}
+.sent{padding:28px 0;text-align:center;color:var(--muted)}
 
-  <style>
-    /* Custom font: put gnf.regular.ttf in the same folder as this index.html */
-    @font-face {
-      font-family: 'GNF';
-      src: url('gnf.regular.ttf') format('truetype');
-      font-weight: 100 900;
-      font-style: normal;
-      font-display: swap;
-    }
-    html, body, button, input, select, textarea {
-      font-family: 'GNF', 'Inter', sans-serif;
-    }
+/* posters */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}
+.card{display:block;cursor:pointer}
+.poster{overflow:hidden;aspect-ratio:2/3;border-radius:10px;position:relative;display:flex;align-items:flex-end;padding:10px;font-weight:800;font-size:34px;line-height:1;color:rgba(255,255,255,.9);border:1px solid var(--line);transition:transform .2s}
+.card:hover .poster{outline:2px solid var(--accent);transform:translateY(-3px)}
+.pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.badge{z-index:1;position:absolute;top:8px;left:8px;font-size:11px;font-weight:700;background:rgba(0,0,0,.65);color:#fff;border-radius:4px;padding:1px 6px}
+.t{margin-top:8px;font-size:14px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.t.sm{color:var(--muted);font-size:13px}
 
-    /* Absolute No Background - Fully Transparent Base */
-    html, body {
-      background-color: transparent !important;
-      background: transparent !important;
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      min-height: 100vh;
-      color: #ffffff;
-    }
+/* hero */
+.bleed{position:relative;left:50%;margin-left:calc(var(--sb) / 2 - 50vw);width:calc(100vw - var(--sb))}
+.hb{height:min(76vh,700px);min-height:420px;overflow:hidden;background:linear-gradient(120deg,#0e0e12,#1b1b24)}
+.slide{position:absolute;inset:0;display:flex;align-items:center;opacity:0;transition:opacity .9s;pointer-events:none;background:#000}
+.slide.on{opacity:1;pointer-events:auto}
+.simg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.simg.blur{filter:blur(28px) brightness(.6);transform:scale(1.2)}
+.shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.9),rgba(0,0,0,.4) 60%,rgba(0,0,0,.05)),linear-gradient(transparent 60%,#000)}
+.hbin{position:relative;z-index:1;max-width:1160px;width:100%;margin:auto;padding:48px 20px 70px;color:#fff}
+.htitle{font-size:clamp(30px,5vw,56px);max-width:16ch;line-height:1.05;letter-spacing:-1px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:14px;display:inline-block}
+a.chip:hover,.chip.on{border-color:var(--accent);color:var(--accent)}
+.hb .chip{background:rgba(0,0,0,.55);color:#fff;border-color:transparent}
+.hdesc{max-width:56ch;color:#e8e8ee;margin:14px 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;align-items:center}
+.hb .btn.play{background:#fff;color:#000;border-radius:999px;padding:12px 30px;font-size:18px}
+.round{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.6);border:2px solid rgba(255,255,255,.35);color:#fff;font-size:22px;line-height:1;padding:0}
+.dots{position:absolute;z-index:2;left:0;right:0;bottom:22px;display:flex;gap:8px;justify-content:center}
+.dots button{width:9px;height:9px;border-radius:50%;border:0;background:rgba(255,255,255,.35);padding:0}
+.dots button.on{background:var(--accent);width:26px;border-radius:6px}
 
-    /* Monochrome Scrollbar */
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.5);
-    }
+/* browse / filters */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 8px}
+select,.filters input{background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font:inherit}
+.search2{display:flex;gap:8px}.search2 input{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 14px;font:inherit}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:var(--surface);border:0;padding:7px 16px}.seg .on{background:var(--accent);color:#fff}
 
-    /* Ultra-Clear Glass Header */
-    .glass-header {
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
+/* detail */
+.dbn{height:300px;overflow:hidden;background:#101014}
+.dbn img{width:100%;height:100%;object-fit:cover;filter:blur(2px) brightness(.55);transform:scale(1.05)}
+.dbn::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 30%,#000)}
+.detail{display:grid;grid-template-columns:240px 1fr;gap:28px;margin-top:-110px;position:relative;z-index:1}
+.detail .poster{box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.detail h1{font-size:clamp(26px,4vw,40px);line-height:1.1;letter-spacing:-.5px;margin-top:70px}
+.desc{max-width:70ch;color:var(--muted);white-space:pre-line;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.desc.open{-webkit-line-clamp:unset;display:block}
+.clist{border:1px solid var(--line);border-radius:12px;max-height:540px;overflow-y:auto;background:var(--surface)}
+.chr{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--line)}
+.chr:last-child{border-bottom:0}
+.chr:hover{background:#1a1a1e}
+.chr.cur{box-shadow:inset 3px 0 var(--accent)}
+.chr b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chr .grow{min-width:0}
+.tools{display:flex;gap:10px;margin:0 0 12px;flex-wrap:wrap}
 
-    /* Strict 2:3 Poster Aspect Ratio */
-    .poster-card {
-      aspect-ratio: 2 / 3;
-    }
+/* reader */
+.rd{position:fixed;inset:0;z-index:25;display:none;flex-direction:column;background:#050506;color:#fff}
+.rd.open{display:flex}
+.rd.t-gray{background:#1a1a1d;color:#ccc}
+.rd.t-light{background:#ececec;color:#000}
+.rbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:#0b0b0d;border-bottom:1px solid var(--line);color:#fff;flex:none}
+.rt{font-weight:700;font-size:14px;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc,.rr{display:flex;gap:6px;align-items:center}
+.rc select{max-width:240px;padding:5px 8px;font-size:13px}
+.mb{background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:5px 11px;font-size:14px}
+.mb:disabled{opacity:.35;cursor:default}
+.mb:hover:not(:disabled){border-color:var(--accent)}
+.rprog{height:3px;background:#1a1a1e;flex:none}.rprog i{display:block;height:100%;width:0;background:var(--accent)}
+.rcan{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;align-items:center}
+.rpages{width:100%;max-width:720px;margin:0 auto}
+.rd.wide .rpages{max-width:1000px}
+.rpages img{display:block;width:100%;margin:6px auto;min-height:200px;background:#0d0d10}
+.rpages .single{display:flex;justify-content:center;align-items:center;min-height:70vh}
+.rpages .single img{width:auto;max-width:100%;max-height:82vh;margin:0;min-height:0;cursor:pointer}
+.rmsg{text-align:center;color:var(--muted);padding:80px 0;line-height:1.7}
+.rend{text-align:center;padding:40px 0 80px}.rend p{color:var(--muted);margin-bottom:14px}
+.rfoot{display:none;gap:16px;align-items:center;justify-content:center;padding:8px;background:#0b0b0d;border-top:1px solid var(--line);flex:none;font-size:14px;color:#fff}
+.rfoot.on{display:flex}
 
-    /* Shimmer Skeleton Animation */
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    .skeleton-shimmer {
-      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.8s infinite;
-    }
-
-    /* Transparent Reader Theme Presets */
-    .reader-theme-dark { background-color: rgba(0, 0, 0, 0.85); color: #ffffff; backdrop-filter: blur(10px); }
-    .reader-theme-gray { background-color: rgba(17, 17, 17, 0.85); color: #cccccc; backdrop-filter: blur(10px); }
-    .reader-theme-light { background-color: rgba(255, 255, 255, 0.85); color: #000000; backdrop-filter: blur(10px); }
-  </style>
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--accent);color:#fff;padding:8px 18px;border-radius:999px;display:none;z-index:40}
+footer{border-top:1px solid var(--line);padding:24px 20px;text-align:center;color:var(--muted);font-size:14px}
+@media(prefers-reduced-motion:reduce){.slide{transition:none}.poster{transition:none}}
+@media(max-width:760px){
+ :root{--sb:0px}
+ .burger{display:block}
+ .side{left:0;top:0;bottom:0;width:250px;border-radius:0 18px 18px 0;transform:translateX(-110%);transition:transform .25s;padding-top:calc(64px + env(safe-area-inset-top,0px))}
+ .side.open{transform:translateX(0);box-shadow:0 0 40px rgba(0,0,0,.7)}
+ .hb{height:68vh}
+ .detail{grid-template-columns:1fr;margin-top:-80px}.detail .poster{max-width:200px}.detail h1{margin-top:0}
+ .rt{max-width:120px}
+}
+</style>
 </head>
-<body class="bg-transparent text-white antialiased min-h-screen flex flex-col selection:bg-white selection:text-black">
+<body>
+<button class="burger" id="burger" aria-label="Menu">☰</button>
+<aside class="side" id="side">
+  <nav class="main" id="nav">
+    <a href="#/" data-r="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Home</a><a href="#/search" data-r="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search</a><a href="#/browse" data-r="browse"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Browse</a><a href="#/library" data-r="library"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18l-7-4-7 4z"/></svg>Library</a>
+  </nav>
+</aside>
+<main id="app"></main>
+<footer>Manga data from <a href="https://anilist.co" target="_blank" rel="noopener" style="color:var(--accent)">AniList</a> · chapters from MangaDex</footer>
+<div class="toast" id="toast"></div>
 
-  <!-- TOP HEADER & MINIMAL SEARCH BAR -->
-  <header class="sticky top-0 z-40 w-full glass-header px-2 sm:px-4 py-2.5">
-    <div class="w-full flex items-center justify-between gap-2 sm:gap-4">
-      
-      <!-- Mode Switcher -->
-      <div class="flex items-center shrink-0">
-        <div class="flex bg-black/40 border border-white/10 rounded p-0.5 backdrop-blur-md">
-          <button 
-            id="btnAnimeMode" 
-            class="px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 bg-white text-black shadow"
-          >
-            <i class="fa-solid fa-tv text-[10px]"></i>
-            <span class="tracking-wide">Anime</span>
-          </button>
-          <button 
-            id="btnMangaMode" 
-            class="px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 text-neutral-400 hover:text-white"
-          >
-            <i class="fa-solid fa-book-open text-[10px]"></i>
-            <span class="tracking-wide">Manga</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Search Input -->
-      <div class="relative flex-1 max-w-2xl mx-auto group">
-        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 text-xs group-focus-within:text-white transition-colors"></i>
-        <input 
-          type="text" 
-          id="searchInput" 
-          placeholder="Search vault..." 
-          class="w-full bg-black/40 backdrop-blur-md text-xs sm:text-sm text-white placeholder-neutral-400 rounded pl-10 pr-10 py-1.5 border border-white/10 focus:border-white/40 focus:outline-none transition-all shadow-inner"
-          autocomplete="off"
-        >
-        <button id="btnClearSearch" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-1 transition-colors">
-          <i class="fa-solid fa-xmark text-xs"></i>
-        </button>
-      </div>
-
-    </div>
-  </header>
-
-  <!-- MAIN POSTER GRID SECTION -->
-  <main class="flex-1 w-full p-1 sm:p-2">
-    <div 
-      id="posterGrid" 
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-1 sm:gap-2 w-full min-h-[85vh]"
-    ></div>
-
-    <!-- Empty State -->
-    <div id="emptyState" class="hidden min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
-      <div class="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center mb-3 text-neutral-400">
-        <i class="fa-solid fa-ghost text-xl"></i>
-      </div>
-      <h3 class="text-xs font-bold text-neutral-300 uppercase tracking-widest">No Posters Found</h3>
-      <button id="btnResetSearch" class="mt-4 px-4 py-1.5 bg-white text-black text-xs font-bold rounded hover:bg-neutral-200 transition-all shadow">
-        Reset Search
-      </button>
-    </div>
-
-    <!-- Pagination -->
-    <div id="paginationContainer" class="py-8 flex justify-center items-center">
-      <button 
-        id="btnLoadMore" 
-        class="hidden px-6 py-2 rounded bg-black/50 backdrop-blur-md hover:bg-black/70 border border-white/10 text-xs font-bold text-neutral-300 hover:text-white transition-all shadow"
-      >
-        <span>Load More</span>
-        <i class="fa-solid fa-arrow-down text-[10px]"></i>
-      </button>
-    </div>
-  </main>
-
-  <!-- EMBEDDED ANIME PLAYER MODAL WITH SEASONS -->
-  <div id="animePlayerModal" class="fixed inset-0 z-50 hidden flex flex-col bg-black/80 backdrop-blur-xl transition-colors duration-200">
-    <!-- Player Top Header -->
-    <header class="p-2 sm:px-4 bg-black/60 backdrop-blur-md border-b border-white/10 flex flex-wrap items-center justify-between gap-2 z-20 shrink-0">
-      <div class="flex items-center gap-2 max-w-xs sm:max-w-md truncate">
-        <h3 id="playerAnimeTitle" class="text-xs sm:text-sm font-bold text-white truncate">Anime Title</h3>
-      </div>
-
-      <!-- Controls: Season & Episode Switchers -->
-      <div class="flex items-center gap-2">
-        <div class="flex items-center gap-1">
-          <span class="text-xs text-neutral-400 font-semibold">Season:</span>
-          <select id="playerSeasonSelect" class="bg-black/60 border border-white/10 text-xs text-neutral-300 rounded px-2 py-1 focus:outline-none">
-            <option value="1">Season 1</option>
-          </select>
-        </div>
-
-        <div class="flex items-center gap-1">
-          <span class="text-xs text-neutral-400 font-semibold">Episode:</span>
-          <select id="playerEpisodeSelect" class="bg-black/60 border border-white/10 text-xs text-neutral-300 rounded px-2 py-1 focus:outline-none">
-            <option value="1">Ep 1</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Close Button -->
-      <button id="btnCloseAnimePlayer" class="w-7 h-7 rounded bg-black/60 hover:bg-white hover:text-black border border-white/10 text-neutral-300 flex items-center justify-center transition-all">
-        <i class="fa-solid fa-xmark text-xs"></i>
-      </button>
-    </header>
-
-    <!-- Player iframe Canvas Area -->
-    <div class="flex-1 w-full bg-transparent flex items-center justify-center relative">
-      <iframe id="animePlayerIframe" src="" class="w-full h-full border-0 bg-transparent" allowfullscreen></iframe>
-    </div>
+<div class="rd" id="rd" role="dialog" aria-label="Manga reader">
+  <div class="rbar">
+    <div class="rr"><button class="mb" id="rClose" aria-label="Close reader">✕</button><span class="rt" id="rTitle">Manga</span></div>
+    <div class="rc"><button class="mb" id="rPrev" disabled aria-label="Previous chapter">‹</button><select id="rSel" aria-label="Chapter"><option value="">Loading chapters…</option></select><button class="mb" id="rNext" disabled aria-label="Next chapter">›</button></div>
+    <div class="rr"><button class="mb" id="rMode" title="Toggle scroll / page mode">Scroll</button><button class="mb" id="rWide" title="Page width">Width</button><button class="mb" id="rTheme" title="Switch theme" aria-label="Switch theme">◐</button></div>
   </div>
+  <div class="rprog"><i id="rBar"></i></div>
+  <div class="rcan" id="rCan"><div class="rpages" id="rPages"></div></div>
+  <div class="rfoot" id="rFoot"><button class="mb" id="rPp">Previous page</button><span class="muted" id="rInd">Page 1 / 1</span><button class="mb" id="rNp">Next page</button></div>
+</div>
 
-  <!-- MANGA READER MODAL -->
-  <div id="mangaReaderModal" class="fixed inset-0 z-50 hidden flex flex-col reader-theme-dark transition-colors duration-200">
-    <header class="p-2 bg-black/60 backdrop-blur-md border-b border-white/10 flex flex-wrap items-center justify-between gap-2 z-20 shrink-0">
-      <div class="flex items-center gap-2 max-w-xs sm:max-w-md truncate">
-        <h3 id="readerMangaTitle" class="text-xs font-bold text-white truncate">Manga Title</h3>
-      </div>
-      <div class="flex items-center gap-1 flex-1 max-w-xs justify-center">
-        <button id="btnReaderPrevCh" disabled class="px-2 py-1 bg-black/40 disabled:opacity-30 hover:bg-black/70 border border-white/10 rounded text-xs font-semibold text-white transition-all">
-          <i class="fa-solid fa-chevron-left text-[10px]"></i>
-        </button>
-        <select id="readerChapterSelect" class="bg-black/60 border border-white/10 text-xs text-neutral-300 rounded px-2 py-1 focus:outline-none max-w-[160px] truncate">
-          <option value="">Loading Chapters...</option>
-        </select>
-        <button id="btnReaderNextCh" disabled class="px-2 py-1 bg-black/40 disabled:opacity-30 hover:bg-black/70 border border-white/10 rounded text-xs font-semibold text-white transition-all">
-          <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        </button>
-      </div>
-      <div class="flex items-center gap-1.5">
-        <button id="btnToggleViewMode" class="p-1.5 bg-black/40 hover:bg-black/70 rounded border border-white/10 text-xs text-neutral-400 hover:text-white" title="Toggle Scroll / Page Mode">
-          <i id="viewModeIcon" class="fa-solid fa-scroll"></i>
-        </button>
-        <button id="btnToggleTheme" class="p-1.5 bg-black/40 hover:bg-black/70 rounded border border-white/10 text-xs text-neutral-400 hover:text-white" title="Switch Theme">
-          <i class="fa-solid fa-circle-half-stroke"></i>
-        </button>
-        <button id="btnCloseReader" class="w-6 h-6 rounded bg-black/40 hover:bg-white hover:text-black border border-white/10 text-neutral-300 flex items-center justify-center transition-all ml-1">
-          <i class="fa-solid fa-xmark text-xs"></i>
-        </button>
-      </div>
-    </header>
+<script>
+const SHOW_TITLES=false; /* true = show the title under every poster */
+const $=s=>document.querySelector(s),app=$('#app'),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hash=s=>{let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let list=store.get('mlist',[]),prog=store.get('mread',{});
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.k);toast.k=setTimeout(()=>t.style.display='none',1800)};
+const G=["Action","Adventure","Comedy","Drama","Fantasy","Horror","Mahou Shoujo","Mystery","Psychological","Romance","Sci-Fi","Slice of Life","Sports","Supernatural","Thriller"];
+const SORTS={POPULARITY_DESC:'Popular',TRENDING_DESC:'Trending',SCORE_DESC:'Top rated',UPDATED_AT_DESC:'Recently updated',START_DATE_DESC:'Newest',TITLE_ROMAJI:'A–Z'};
+const KIND={JP:'Manga',KR:'Manhwa',CN:'Manhua',TW:'Manhua'};
+const COUNTRY=['JP','KR','CN','TW'],STAT={Releasing:'RELEASING',Finished:'FINISHED',Hiatus:'HIATUS'};
+const M={};
+let lastErr='',rt=0,obs,feed;
 
-    <div id="readerCanvasArea" class="flex-1 overflow-y-auto p-2 sm:p-4 flex flex-col items-center bg-transparent">
-      <div id="readerPagesContainer" class="w-full max-w-2xl space-y-2 my-auto"></div>
-    </div>
+/* ---------- AniList ---------- */
+const FL='id idMal isAdult siteUrl title{romaji english} format status chapters volumes countryOfOrigin averageScore genres startDate{year} bannerImage coverImage{extraLarge large}';
+const F=FL+' description(asHtml:false)';
+async function gql(query,variables){for(let i=0;i<3;i++){try{const r=await fetch('https://graphql.anilist.co',{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({query,variables})});if(r.status===429){await sleep(1500*(i+1));continue}const j=await r.json();if(j.errors)lastErr=j.errors.map(x=>x.message).join('; ');if(j.data)return j.data}catch(e){lastErr=String(e.message||e);await sleep(500)}}return null}
+const clean=m=>!m.isAdult&&!/Hentai|Ecchi/.test((m.genres||[]).join());
+function norm(m){const t=m.title.english||m.title.romaji,c=m.coverImage||{};const o=M[m.id]||(M[m.id]={id:m.id,h:hash(t)%360});
+ Object.assign(o,{mal:m.idMal,t,t2:m.title.romaji,format:m.format,status:m.status,chapters:m.chapters,volumes:m.volumes,country:m.countryOfOrigin,score:m.averageScore,genres:(m.genres||[]).slice(0,5),year:(m.startDate&&m.startDate.year)||'',url:m.siteUrl,cover:c.extraLarge||c.large,cover2:c.large,banner:m.bannerImage});
+ if(m.description!==undefined){o.desc=(m.description||'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]*>/g,'').trim();o.full=1}
+ return o}
+async function fetchList(o){const d=['$page:Int','$per:Int'],v={page:o.page||1,per:o.per||30};
+ const args=['type:MANGA','isAdult:false','genre_not_in:["Hentai","Ecchi"]','format_in:[MANGA,ONE_SHOT]','sort:['+(o.q?'SEARCH_MATCH':(SORTS[o.sort]?o.sort:'POPULARITY_DESC'))+']'];
+ if(o.min&&+o.min)args.push('averageScore_greater:'+(+o.min));
+ if(o.q){d.push('$search:String');v.search=o.q;args.push('search:$search')}
+ if(o.genre){d.push('$genre:String');v.genre=o.genre;args.push('genre:$genre')}
+ if(COUNTRY.includes(o.country))args.push('countryOfOrigin:"'+o.country+'"');
+ if(STAT[o.status])args.push('status:'+STAT[o.status]);
+ const data=await gql(`query(${d.join(',')}){Page(page:$page,perPage:$per){pageInfo{hasNextPage} media(${args.join(',')}){${o.full?F:FL}}}}`,v);
+ if(!data)return{items:[],next:false,err:true};return{items:data.Page.media.filter(clean).map(norm),next:data.Page.pageInfo.hasNextPage}}
+async function getMany(ids,full){const need=ids.filter(i=>!M[i]||(full&&!M[i].full));if(need.length){const d=await gql(`query($ids:[Int]){Page(perPage:50){media(id_in:$ids,type:MANGA){${F}}}}`,{ids:need});d&&d.Page.media.forEach(norm)}return ids.map(i=>M[i]).filter(Boolean)}
+const getManga=async id=>(await getMany([id],true))[0];
 
-    <footer id="readerSinglePageFooter" class="hidden p-2 bg-black/60 backdrop-blur-md border-t border-white/10 flex items-center justify-center gap-4 text-xs">
-      <button id="btnSinglePrevPage" class="px-3 py-1 bg-black/40 hover:bg-black/70 border border-white/10 text-white rounded">Previous Page</button>
-      <span id="singlePageIndicator" class="font-mono text-neutral-400 font-semibold">Page 1 / 1</span>
-      <button id="btnSingleNextPage" class="px-3 py-1 bg-black/40 hover:bg-black/70 border border-white/10 text-white rounded">Next Page</button>
-    </footer>
-  </div>
+/* ---------- chapters + pages (/api/manga first, direct MangaDex as fallback) ---------- */
+async function mdj(p){const r=await fetch('https://api.mangadex.org'+p);if(!r.ok)throw new Error('MangaDex error '+r.status);return r.json()}
+async function mdChapters(m){
+ const base='&contentRating[]=safe&contentRating[]=suggestive&availableTranslatedLanguage[]=en';let cand=[];
+ for(const t of [m.t,m.t2].filter((x,i,a)=>x&&a.indexOf(x)===i)){try{cand=cand.concat((await mdj('/manga?limit=10&order[relevance]=desc&title='+encodeURIComponent(t)+base)).data||[])}catch(e){}}
+ const L=x=>x.attributes.links||{};
+ const hit=cand.find(x=>String(L(x).al)===String(m.id)||(m.mal&&String(L(x).mal)===String(m.mal)))||cand[0];
+ if(!hit)throw new Error('Manga not found on MangaDex.');
+ const seen=new Map();let off=0,total=1;
+ for(let n=0;n<20&&off<total;n++){
+  const j=await mdj(`/manga/${hit.id}/feed?translatedLanguage[]=en&order[chapter]=asc&limit=500&offset=${off}&includeExternalUrl=0&contentRating[]=safe&contentRating[]=suggestive`);
+  total=j.total||0;off+=500;
+  for(const c of j.data||[]){const a=c.attributes;if(!a.pages)continue;const k=a.chapter==null?'one-'+c.id:a.chapter,e=seen.get(k);if(e)e.src.push(c.id);else seen.set(k,{id:c.id,src:[c.id],ch:a.chapter,vol:a.volume,title:a.title})}}
+ const chapters=[...seen.values()].sort((x,y)=>(parseFloat(x.ch)||0)-(parseFloat(y.ch)||0));
+ if(!chapters.length)throw new Error('No English chapters available.');
+ return{mdId:hit.id,chapters}}
+async function mdPages(srcs){for(const id of srcs){try{const j=await mdj('/at-home/server/'+id),b=j.baseUrl,h=j.chapter.hash;if(!j.chapter.data.length)continue;
+  return{urls:j.chapter.data.map(f=>`${b}/data/${h}/${f}`),alts:(j.chapter.dataSaver||[]).map(f=>`${b}/data-saver/${h}/${f}`)}}catch(e){}}throw new Error('Could not load pages')}
+async function mangaApi(params,fallback){try{const r=await fetch('/api/manga?'+params),j=await r.json();if(r.ok&&!j.error)return j}catch(e){}return fallback()}
+const CH={};
+function getChapters(m){return CH[m.id]||(CH[m.id]=(async()=>{
+ const p=new URLSearchParams({action:'chapters',title:m.t||m.t2});if(m.t&&m.t2&&m.t!==m.t2)p.set('alt',m.t2);p.set('al',m.id);if(m.mal)p.set('mal',m.mal);
+ const d=await mangaApi(p.toString(),()=>mdChapters(m));
+ if(!d.chapters||!d.chapters.length)throw new Error('No English chapters available.');
+ return{seasons:!!d.seasons,list:d.chapters.map(c=>({src:c.src||[c.id],chapter:c.ch==null?'Oneshot':c.ch,vol:c.vol,season:c.s,title:c.title||''}))}})().catch(e=>{delete CH[m.id];throw e}))}
+const chLabel=(c,seasons)=>(seasons?'S'+c.season+' ':'')+'Chapter '+c.chapter+(c.title&&c.title!=='Chapter '+c.chapter?' — '+c.title:'');
 
-  <!-- JAVASCRIPT ENGINE -->
-  <script>
-    const ANILIST_URL = "https://graphql.anilist.co";
-    const ANILIST_VAULT_QUERY = `
-    query ($search: String, $page: Int, $perPage: Int, $type: MediaType) {
-      Page(page: $page, perPage: $perPage) {
-        pageInfo { hasNextPage }
-        media(type: $type, search: $search, sort: [POPULARITY_DESC], isAdult: false) {
-          id
-          idMal
-          title { english romaji native }
-          coverImage { extraLarge large }
-          bannerImage
-          episodes
-          chapters
-          relations {
-            edges {
-              relationType
-              node {
-                id
-                idMal
-                title { english romaji }
-                type
-                format
-                episodes
-              }
-            }
-          }
-          description(asHtml: false)
-          trailer { id site }
-          studios(isMain: true) { nodes { name } }
-        }
-      }
-    }`;
+/* ---------- rendering helpers ---------- */
+const grad=a=>`linear-gradient(160deg,hsl(${a.h} 55% 38%),hsl(${(a.h+50)%360} 60% 14%))`;
+const ini=t=>t.replace(/[^A-Za-z0-9 ]/g,'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?';
+const kind=a=>a.format==='ONE_SHOT'?'One-shot':(KIND[a.country]||'Manga');
+function coverErr(el){if(el.dataset.alt&&!el.dataset.tried){el.dataset.tried=1;el.src=el.dataset.alt}else el.remove()}
+const poster=a=>`<div class="poster" style="background:${grad(a)}">${ini(a.t)}${a.cover?`<img class="pimg" src="${esc(a.cover)}" data-alt="${esc(a.cover2||'')}" alt="" loading="lazy" onerror="coverErr(this)">`:''}<span class="badge">${kind(a)}</span></div>`;
+const card=a=>`<a class="card" href="#/manga/${a.id}" aria-label="${esc(a.t)}">${poster(a)}${SHOW_TITLES?`<div class="t">${esc(a.t)}</div>`:''}</a>`;
+const errBox=()=>`<p class="empty">Couldn’t load this section${lastErr?' ('+esc(lastErr)+')':''}. <button class="btn alt" data-retry>Retry</button></p>`;
+document.addEventListener('click',e=>{if(e.target.closest('[data-retry]'))route()});
+function paintAdds(){document.querySelectorAll('[data-add]').forEach(b=>{const on=list.includes(+b.dataset.add);b.textContent=b.classList.contains('round')?(on?'✓':'+'):(on?'In your library ✓':'Add to library')})}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(!b)return;const id=+b.dataset.add,i=list.indexOf(id);i<0?(list.push(id),toast('Added to library')):(list.splice(i,1),toast('Removed from library'));store.set('mlist',list);paintAdds()});
 
-    const state = {
-      mode: 'ANIME',
-      query: '',
-      page: 1,
-      hasMorePages: true,
-      isLoading: false,
-      items: [],
-      activeItem: null,
-      currentSeasonId: null,
-      reader: {
-        mangadexId: null,
-        chapters: [],
-        currentChapterIndex: -1,
-        pages: [],
-        viewMode: 'scroll',
-        singlePageIndex: 0,
-        theme: 'dark'
-      }
-    };
+/* infinite feed */
+function startFeed(mount,getPage,render){const f=feed={page:0,next:true,busy:false,seen:new Set(),n:0},sent=$('#sent');
+ async function more(){if(f!==feed||f.busy||!f.next)return;f.busy=true;sent.textContent='Loading…';const r=await getPage(f.page+1);if(f!==feed)return;f.busy=false;f.page++;
+  const items=r.items.filter(x=>!f.seen.has(x.id)&&f.seen.add(x.id));f.n+=items.length;mount.insertAdjacentHTML('beforeend',items.map(render).join(''));
+  f.next=r.next&&!r.err;sent.textContent=f.next?'':(f.n?'You’ve reached the end.':(r.err?'Could not load manga'+(lastErr?' ('+lastErr+')':'')+'. Check your connection and reload.':'Nothing matches. Clear a filter or try another title.'));
+  if(f.next&&sent.getBoundingClientRect().top<innerHeight+600)more()}
+ obs=new IntersectionObserver(e=>{if(e[0].isIntersecting)more()},{rootMargin:'600px'});obs.observe(sent);more()}
 
-    const $ = id => document.getElementById(id);
-    const elements = {
-      btnAnimeMode: $('btnAnimeMode'),
-      btnMangaMode: $('btnMangaMode'),
-      searchInput: $('searchInput'),
-      btnClearSearch: $('btnClearSearch'),
-      posterGrid: $('posterGrid'),
-      emptyState: $('emptyState'),
-      btnResetSearch: $('btnResetSearch'),
-      btnLoadMore: $('btnLoadMore'),
-      
-      animePlayerModal: $('animePlayerModal'),
-      btnCloseAnimePlayer: $('btnCloseAnimePlayer'),
-      playerAnimeTitle: $('playerAnimeTitle'),
-      playerSeasonSelect: $('playerSeasonSelect'),
-      playerEpisodeSelect: $('playerEpisodeSelect'),
-      animePlayerIframe: $('animePlayerIframe'),
+/* ---------- hero ---------- */
+let hi=0,heroT;
+function heroSlides(list){return list.map((a,i)=>`<div class="slide${i?'':' on'}"><img class="simg${a.banner?'':' blur'}" src="${esc(a.banner||a.cover)}" alt="" ${i?'':'fetchpriority="high"'}><div class="shade"></div><div class="hbin">
+ <div class="meta">${a.score?`<span class="chip">★ ${(a.score/10).toFixed(1)}</span>`:''}${a.year?`<span class="chip">${a.year}</span>`:''}<span class="chip">${kind(a)}</span>${a.chapters?`<span class="chip">${a.chapters} chapters</span>`:''}${a.genres.slice(0,3).map(g=>`<span class="chip">${esc(g)}</span>`).join('')}</div>
+ <h1 class="htitle">${esc(a.t)}</h1><p class="hdesc">${esc(a.desc||'')}</p>
+ <div class="actions"><a class="btn play" href="#/read/${a.id}/-1">▶ Read now</a><button class="round" data-add="${a.id}" aria-label="Add to library">+</button><a class="round" href="#/manga/${a.id}" aria-label="Details">i</a></div></div></div>`).join('')+`<div class="dots">${list.map((_,i)=>`<button class="${i?'':'on'}" data-hi="${i}" aria-label="Slide ${i+1}"></button>`).join('')}</div>`}
+function heroShow(n){const sl=document.querySelectorAll('.hb .slide');if(!sl.length)return;hi=(n+sl.length)%sl.length;sl.forEach((s,i)=>s.classList.toggle('on',i===hi));document.querySelectorAll('.hb .dots button').forEach((b,i)=>b.classList.toggle('on',i===hi))}
+function heroStart(){clearInterval(heroT);if(document.querySelectorAll('.hb .slide').length>1)heroT=setInterval(()=>heroShow(hi+1),7000)}
+document.addEventListener('click',e=>{const d=e.target.closest('[data-hi]');if(d){heroShow(+d.dataset.hi);heroStart()}});
 
-      mangaReaderModal: $('mangaReaderModal'),
-      btnCloseReader: $('btnCloseReader'),
-      readerMangaTitle: $('readerMangaTitle'),
-      readerChapterSelect: $('readerChapterSelect'),
-      btnReaderPrevCh: $('btnReaderPrevCh'),
-      btnReaderNextCh: $('btnReaderNextCh'),
-      btnToggleViewMode: $('btnToggleViewMode'),
-      viewModeIcon: $('viewModeIcon'),
-      btnToggleTheme: $('btnToggleTheme'),
-      readerPagesContainer: $('readerPagesContainer'),
-      readerSinglePageFooter: $('readerSinglePageFooter'),
-      btnSinglePrevPage: $('btnSinglePrevPage'),
-      btnSingleNextPage: $('btnSingleNextPage'),
-      singlePageIndicator: $('singlePageIndicator')
-    };
+/* ---------- pages ---------- */
+function home(tok){
+ const ok=()=>tok===rt,sec=(id,t,link)=>`<h2>${t}${link?` <a class="muted" href="${link}">See all</a>`:''}</h2><div class="grid" id="${id}"></div>`;
+ app.innerHTML=`<div class="hb bleed" id="hb"></div><div id="cr"></div>${sec('g1','Trending now','#/browse')}${sec('g2','Top rated','#/browse/sort/SCORE_DESC')}${sec('g3','Popular manhwa','#/browse/country/KR')}${sec('g4','Popular manhua','#/browse/country/CN')}`;
+ const fill=(id,o)=>fetchList(o).then(r=>{if(!ok())return;if(!r.items.length){$('#'+id).outerHTML=errBox();return}$('#'+id).innerHTML=r.items.slice(0,o.show||18).map(card).join('');paintAdds()});
+ fetchList({sort:'TRENDING_DESC',per:24,min:65,full:1}).then(r=>{if(!ok())return;
+  if(!r.items.length){$('#hb').remove();$('#g1').outerHTML=errBox();return}
+  $('#g1').innerHTML=r.items.slice(0,18).map(card).join('');
+  const hl=r.items.filter(a=>a.desc).slice(0,6);if(hl.length){$('#hb').innerHTML=heroSlides(hl);heroStart();paintAdds()}else $('#hb').remove()});
+ fill('g2',{sort:'SCORE_DESC',per:18,min:75});fill('g3',{sort:'POPULARITY_DESC',country:'KR',per:18});fill('g4',{sort:'POPULARITY_DESC',country:'CN',per:18});
+ const ids=Object.entries(prog).sort((a,b)=>b[1].ts-a[1].ts).slice(0,12).map(x=>+x[0]);
+ if(ids.length)getMany(ids).then(rs=>{if(!ok()||!rs.length)return;
+  $('#cr').innerHTML=`<h2>Continue reading</h2><div class="grid">${rs.map(a=>`<a class="card" href="#/read/${a.id}/-1" aria-label="${esc(a.t)}">${poster(a)}<div class="t sm">${esc(prog[a.id].label||'')}</div></a>`).join('')}</div>`})}
 
-    function init() {
-      setupEventListeners();
-      fetchVaultData(true);
-    }
+const bs={sort:'POPULARITY_DESC',country:'',status:'',genre:'',min:''};
+function browse(){
+ const sel=(k,o)=>`<select data-k="${k}" aria-label="${k}">${Object.entries(o).map(([v,n])=>`<option value="${v}" ${bs[k]===v?'selected':''}>${n}</option>`).join('')}</select>`;
+ app.innerHTML=`<h2 style="margin-top:40px">${bs.genre?esc(bs.genre):'Browse'} <small>manga, manhwa & manhua</small></h2>
+ <div class="filters">${sel('sort',SORTS)}${sel('country',{'':'All types',JP:'Manga (JP)',KR:'Manhwa (KR)',CN:'Manhua (CN)',TW:'Taiwan'})}${sel('status',{'':'Any status',Releasing:'Releasing',Finished:'Finished',Hiatus:'Hiatus'})}${sel('min',{'':'Any score','60':'60%+','70':'70%+','80':'80%+'})}${sel('genre',{'':'All genres',...Object.fromEntries(G.map(g=>[g,g]))})}</div>
+ <div class="grid" id="bg"></div><div class="sent" id="sent"></div>`;
+ app.querySelectorAll('select').forEach(s=>s.onchange=()=>{bs[s.dataset.k]=s.value;if(obs)obs.disconnect();feed=null;browse()});
+ startFeed($('#bg'),p=>fetchList({...bs,page:p}),card)}
 
-    function setupEventListeners() {
-      elements.btnAnimeMode.addEventListener('click', () => switchVaultMode('ANIME'));
-      elements.btnMangaMode.addEventListener('click', () => switchVaultMode('MANGA'));
+const sq={q:'',kind:'all'};
+function searchPage(q){sq.q=q;
+ app.innerHTML=`<h2 style="margin-top:40px">Search</h2>
+ <form class="search2" id="sp" style="max-width:640px"><input id="sqi" type="search" placeholder="Type a title…" value="${esc(q)}" aria-label="Search" autocomplete="off"><button class="btn">Search</button></form>
+ <div class="grid" id="bg" style="margin-top:28px"></div><div class="sent" id="sent">${q?'':'Type a title to search.'}</div>`;
+ $('#sp').onsubmit=e=>{e.preventDefault();const v=$('#sqi').value.trim(),h='#/search/'+encodeURIComponent(v);if(location.hash===h)route();else location.hash=h};
+ if(!q){$('#sqi').focus();return}
+ startFeed($('#bg'),p=>fetchList({q,page:p}),card)}
 
-      let searchTimer;
-      elements.searchInput.addEventListener('input', (e) => {
-        const val = e.target.value.trim();
-        elements.btnClearSearch.classList.toggle('hidden', !val);
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(() => {
-          state.query = val;
-          fetchVaultData(true);
-        }, 350);
-      });
+async function libraryPage(tok){app.innerHTML='<h2 style="margin-top:40px">Library</h2><p class="empty">Loading…</p>';const l=await getMany(list);if(tok!==rt)return;
+ app.innerHTML=`<h2 style="margin-top:40px">Library <small>${l.length} saved</small></h2>${l.length?`<div class="grid">${l.map(card).join('')}</div>`:'<p class="empty">Your library is empty. Open a manga and choose Add to library.</p>'}`}
 
-      elements.btnClearSearch.addEventListener('click', resetSearchField);
-      elements.btnResetSearch.addEventListener('click', resetSearchField);
+async function detail(id,tok){
+ app.innerHTML='<p class="empty" style="padding-top:60px">Loading…</p>';const a=await getManga(id);if(tok!==rt)return;if(!a)return nf();document.title=a.t+' — Manga';
+ const p=prog[a.id];
+ app.innerHTML=`<div class="dbn bleed"><img src="${esc(a.banner||a.cover||'')}" alt="" onerror="this.remove()"></div>
+ <div class="detail">${poster(a)}<div><h1>${esc(a.t)}</h1>${a.t2&&a.t2!==a.t?`<p class="muted">${esc(a.t2)}</p>`:''}
+ <div class="meta">${[kind(a),a.year,a.status&&a.status[0]+a.status.slice(1).toLowerCase(),a.chapters?a.chapters+' chapters':'',a.volumes?a.volumes+' volumes':'',a.score?a.score+'% score':''].filter(Boolean).map(m=>`<span class="chip">${esc(m)}</span>`).join('')}${a.genres.map(g=>`<a class="chip" href="#/browse/genre/${encodeURIComponent(g)}">${esc(g)}</a>`).join('')}</div>
+ <p class="desc" id="desc">${esc(a.desc)||'No description available.'}</p><button class="btn alt" id="more" style="margin-top:8px;padding:4px 12px;font-size:13px">Read more</button>
+ <div class="actions"><a class="btn" href="#/read/${a.id}/-1">${p?'Continue reading':'Start reading'}</a><button class="btn alt" data-add="${a.id}">Add to library</button><a class="btn alt" target="_blank" rel="noopener" href="${esc(a.url)}">AniList</a></div></div></div>
+ <h2>Chapters <small id="cn"></small></h2><div class="tools"><input id="cf" type="search" placeholder="Find a chapter number…" aria-label="Find chapter" style="background:var(--surface);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font:inherit"><button class="btn alt" id="cs">Newest first</button></div><div id="cl" class="clist"><p class="empty" style="padding:20px">Loading chapters…</p></div>`;
+ $('#more').onclick=()=>{const d=$('#desc').classList.toggle('open');$('#more').textContent=d?'Show less':'Read more'};
+ paintAdds();
+ try{const L=await getChapters(a);if(tok!==rt)return;let rev=false,q='';
+  $('#cn').textContent=L.list.length+' available';
+  const draw=()=>{let rows=L.list.map((c,i)=>({c,i}));if(q)rows=rows.filter(r=>String(r.c.chapter).toLowerCase().startsWith(q)||chLabel(r.c,L.seasons).toLowerCase().includes(q));if(rev)rows.reverse();
+   $('#cl').innerHTML=rows.length?rows.map(({c,i})=>`<a class="chr${p&&p.i===i?' cur':''}" href="#/read/${a.id}/${i}"><div class="grow"><b>${esc(chLabel(c,L.seasons))}</b>${c.vol?`<span class="muted">Volume ${esc(c.vol)}</span>`:''}</div><span class="chip">${p&&p.i===i?'Continue':'Read'}</span></a>`).join(''):'<p class="empty" style="padding:20px">No chapter matches.</p>'};
+  draw();$('#cf').oninput=e=>{q=e.target.value.trim().toLowerCase();draw()};$('#cs').onclick=()=>{rev=!rev;$('#cs').textContent=rev?'Oldest first':'Newest first';draw()}}
+ catch(e){if(tok!==rt)return;$('#cl').innerHTML=`<p class="empty" style="padding:20px">${esc(e.message)} <button class="btn alt" data-retry>Retry</button></p>`}}
 
-      elements.btnLoadMore.addEventListener('click', () => {
-        if (!state.isLoading && state.hasMorePages) {
-          state.page++;
-          renderSkeletons(false);
-          fetchVaultData(false);
-        }
-      });
+const nf=()=>{app.innerHTML=`<p class="empty" style="padding-top:60px">That page doesn’t exist. <a href="#/" style="color:var(--accent)">Go home</a></p>`};
 
-      elements.btnCloseAnimePlayer.addEventListener('click', closeAnimePlayerModal);
-      
-      elements.playerSeasonSelect.addEventListener('change', (e) => {
-        state.currentSeasonId = e.target.value;
-        updatePlayerEpisodesAndFrame();
-      });
+/* ---------- reader ---------- */
+const rd=Object.assign({m:null,L:null,i:-1,pages:[],alts:[],p:0,req:0},{mode:'scroll',theme:'dark',wide:0},store.get('mrd',{}));
+const rdOpen=()=>$('#rd').classList.contains('open');
+const saveRd=()=>store.set('mrd',{mode:rd.mode,theme:rd.theme,wide:rd.wide});
+function applyRd(){$('#rd').className='rd open t-'+rd.theme+(rd.wide?' wide':'');$('#rMode').textContent=rd.mode==='scroll'?'Scroll':'Page'}
+function rMsg(h){$('#rFoot').classList.remove('on');$('#rPages').innerHTML=`<div class="rmsg">${h}</div>`}
+function pgErr(el){if(el.dataset.alt&&!el.dataset.tried){el.dataset.tried=1;el.src=el.dataset.alt}}
+const pgImg=(i,single)=>`<img src="${esc(rd.pages[i])}" data-alt="${esc(rd.alts[i]||'')}" alt="Page ${i+1}" ${single?'':'loading="lazy" '}onerror="pgErr(this)">`;
+function drawPages(){const box=$('#rPages'),n=rd.pages.length,last=rd.i>=rd.L.list.length-1;
+ if(rd.mode==='scroll'){$('#rFoot').classList.remove('on');
+  box.innerHTML=rd.pages.map((u,i)=>pgImg(i)).join('')+`<div class="rend">${last?'<p>You’re all caught up.</p>':'<p>End of chapter</p><button class="btn" data-rnext>Next chapter →</button>'}</div>`}
+ else{$('#rFoot').classList.add('on');$('#rInd').textContent=`Page ${rd.p+1} / ${n}`;$('#rPp').disabled=rd.p<=0&&rd.i<=0;$('#rNp').disabled=rd.p>=n-1&&last;box.innerHTML=`<div class="single" data-single>${pgImg(rd.p,1)}</div>`}
+ $('#rCan').scrollTop=0;$('#rBar').style.width='0'}
+async function openRead(id,ch){
+ const req=++rd.req;applyRd();document.body.style.overflow='hidden';rMsg('Loading…');$('#rSel').innerHTML='<option value="">Loading chapters…</option>';$('#rPrev').disabled=$('#rNext').disabled=true;
+ try{const m=await getManga(id);if(req!==rd.req)return;if(!m)throw new Error('Manga not found.');rd.m=m;$('#rTitle').textContent=m.t;
+  rMsg('Searching manga providers…');const L=await getChapters(m);if(req!==rd.req)return;rd.L=L;
+  $('#rSel').innerHTML=L.list.map((c,i)=>`<option value="${i}">${esc(chLabel(c,L.seasons))}</option>`).join('');
+  let i=parseInt(ch);if(isNaN(i)||i<0){const p=prog[id];i=p?(p.label&&L.list[p.i]&&chLabel(L.list[p.i],L.seasons)===p.label?p.i:Math.min(p.i,L.list.length-1)):0}
+  loadCh(Math.min(i,L.list.length-1))}
+ catch(e){if(req!==rd.req)return;$('#rSel').innerHTML='<option value="">Unavailable</option>';rMsg('<b>Pages unavailable</b><br>'+esc(e.message))}}
+async function loadCh(i){const L=rd.L;if(!L||i<0||i>=L.list.length)return;rd.i=i;const c=L.list[i],req=++rd.req;
+ $('#rSel').value=i;$('#rPrev').disabled=i===0;$('#rNext').disabled=i===L.list.length-1;
+ try{history.replaceState(null,'','#/read/'+rd.m.id+'/'+i)}catch(e){}
+ rMsg('Loading chapter '+esc(c.chapter)+'…');
+ try{const d=await mangaApi('action=pages&src='+encodeURIComponent(c.src.join(',')),()=>mdPages(c.src));if(req!==rd.req)return;
+  rd.pages=d.urls||[];rd.alts=d.alts||[];rd.p=0;if(!rd.pages.length)throw new Error('empty');
+  prog[rd.m.id]={i,label:chLabel(c,L.seasons),ts:Date.now()};store.set('mread',prog);drawPages()}
+ catch(e){if(req!==rd.req)return;rMsg('Error loading chapter '+esc(c.chapter)+'.<br><button class="btn alt" data-rreload style="margin-top:12px">Try again</button>')}}
+function closeRd(){if(!rdOpen())return;rd.req++;$('#rd').classList.remove('open');document.body.style.overflow='';$('#rPages').innerHTML='';$('#rFoot').classList.remove('on')}
+function exitRd(){if(!rd.m){location.hash='#/';return}location.hash='#/manga/'+rd.m.id}
+const nextPage=()=>{if(rd.p<rd.pages.length-1){rd.p++;drawPages()}else loadCh(rd.i+1)},prevPage=()=>{if(rd.p>0){rd.p--;drawPages()}else loadCh(rd.i-1)};
+$('#rClose').onclick=exitRd;
+$('#rSel').onchange=e=>{const i=parseInt(e.target.value);if(!isNaN(i))loadCh(i)};
+$('#rPrev').onclick=()=>loadCh(rd.i-1);$('#rNext').onclick=()=>loadCh(rd.i+1);
+$('#rPp').onclick=prevPage;$('#rNp').onclick=nextPage;
+$('#rMode').onclick=()=>{rd.mode=rd.mode==='scroll'?'page':'scroll';saveRd();applyRd();if(rd.pages.length)drawPages()};
+$('#rWide').onclick=()=>{rd.wide=rd.wide?0:1;saveRd();applyRd()};
+$('#rTheme').onclick=()=>{rd.theme={dark:'gray',gray:'light',light:'dark'}[rd.theme];saveRd();applyRd()};
+$('#rCan').addEventListener('scroll',e=>{const c=e.target,m=c.scrollHeight-c.clientHeight;$('#rBar').style.width=(m>0?Math.min(100,c.scrollTop/m*100):0)+'%'});
+$('#rd').addEventListener('click',e=>{
+ if(e.target.closest('[data-rnext]')){loadCh(rd.i+1);return}
+ if(e.target.closest('[data-rreload]')){loadCh(rd.i);return}
+ const s=e.target.closest('[data-single] img');if(s){const r=s.getBoundingClientRect();(e.clientX-r.left>r.width/2)?nextPage():prevPage()}});
+document.addEventListener('keydown',e=>{
+ if(!rdOpen()||/INPUT|SELECT|TEXTAREA/.test((e.target||{}).tagName||''))return;
+ if(e.key==='Escape')exitRd();
+ else if(rd.mode==='page'&&rd.pages.length){if(e.key==='ArrowRight')nextPage();else if(e.key==='ArrowLeft')prevPage()}
+ else if(e.key==='ArrowRight'&&e.shiftKey)loadCh(rd.i+1);else if(e.key==='ArrowLeft'&&e.shiftKey)loadCh(rd.i-1)});
 
-      elements.playerEpisodeSelect.addEventListener('change', () => {
-        updatePlayerEpisodesAndFrame();
-      });
-
-      elements.btnCloseReader.addEventListener('click', closeMangaReader);
-      elements.btnToggleViewMode.addEventListener('click', toggleReaderViewMode);
-      elements.btnToggleTheme.addEventListener('click', toggleReaderTheme);
-
-      elements.readerChapterSelect.addEventListener('change', (e) => {
-        const idx = parseInt(e.target.value);
-        if (!isNaN(idx)) loadMangaChapterPages(idx);
-      });
-
-      elements.btnReaderPrevCh.addEventListener('click', () => {
-        if (state.reader.currentChapterIndex > 0) loadMangaChapterPages(state.reader.currentChapterIndex - 1);
-      });
-
-      elements.btnReaderNextCh.addEventListener('click', () => {
-        if (state.reader.currentChapterIndex < state.reader.chapters.length - 1) loadMangaChapterPages(state.reader.currentChapterIndex + 1);
-      });
-
-      elements.btnSinglePrevPage.addEventListener('click', () => {
-        if (state.reader.singlePageIndex > 0) { state.reader.singlePageIndex--; renderSinglePage(); }
-      });
-
-      elements.btnSingleNextPage.addEventListener('click', () => {
-        if (state.reader.singlePageIndex < state.reader.pages.length - 1) { state.reader.singlePageIndex++; renderSinglePage(); }
-      });
-
-      window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') { closeAnimePlayerModal(); closeMangaReader(); }
-      });
-    }
-
-    function resetSearchField() {
-      elements.searchInput.value = '';
-      elements.btnClearSearch.classList.add('hidden');
-      state.query = '';
-      fetchVaultData(true);
-    }
-
-    function switchVaultMode(newMode) {
-      if (state.mode === newMode) return;
-      state.mode = newMode;
-      if (newMode === 'ANIME') {
-        elements.btnAnimeMode.className = "px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 bg-white text-black shadow";
-        elements.btnMangaMode.className = "px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 text-neutral-400 hover:text-white";
-      } else {
-        elements.btnMangaMode.className = "px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 bg-white text-black shadow";
-        elements.btnAnimeMode.className = "px-3 py-1 rounded text-xs font-bold transition-all flex items-center gap-1.5 text-neutral-400 hover:text-white";
-      }
-      fetchVaultData(true);
-    }
-
-    function renderSkeletons(reset = true) {
-      const skeletons = Array(20).fill(0).map(() => `<div class="poster-card rounded skeleton-shimmer border border-white/5 relative overflow-hidden"></div>`).join('');
-      if (reset) elements.posterGrid.innerHTML = skeletons;
-      else elements.posterGrid.insertAdjacentHTML('beforeend', skeletons);
-    }
-
-    async function fetchVaultData(reset = true) {
-      if (state.isLoading) return;
-      state.isLoading = true;
-      if (reset) { state.page = 1; state.items = []; renderSkeletons(true); }
-
-      const variables = { type: state.mode, page: state.page, perPage: 30 };
-      if (state.query) variables.search = state.query;
-
-      try {
-        const response = await fetch(ANILIST_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({ query: ANILIST_VAULT_QUERY, variables })
-        });
-        if (!response.ok) throw new Error("AniList response error");
-        const json = await response.json();
-        const pageData = json.data?.Page;
-        const newItems = (pageData?.media || []).map(item => ({ ...item, type: state.mode }));
-        state.hasMorePages = pageData?.pageInfo?.hasNextPage || false;
-        state.items = reset ? newItems : [...state.items, ...newItems];
-        renderPosterGrid();
-        elements.btnLoadMore.classList.toggle('hidden', !state.hasMorePages);
-      } catch (err) {
-        if (state.mode === 'ANIME') await fetchJikanFallback(reset);
-        else renderPosterGrid();
-      } finally {
-        state.isLoading = false;
-      }
-    }
-
-    async function fetchJikanFallback(reset) {
-      try {
-        const url = state.query ? `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(state.query)}&page=${state.page}&limit=24` : `https://api.jikan.moe/v4/top/anime?page=${state.page}&limit=24`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Jikan Error");
-        const json = await res.json();
-        const fallbackItems = (json.data || []).map(item => ({
-          id: item.mal_id,
-          idMal: item.mal_id,
-          type: 'ANIME',
-          title: { english: item.title_english || item.title, romaji: item.title_japanese || item.title },
-          coverImage: { extraLarge: item.images?.jpg?.large_image_url, large: item.images?.jpg?.image_url },
-          bannerImage: item.images?.jpg?.large_image_url,
-          episodes: item.episodes,
-          relations: { edges: [] },
-          description: item.synopsis,
-          trailer: item.trailer?.youtube_id ? { id: item.trailer.youtube_id, site: 'youtube' } : null,
-          studios: { nodes: item.studios ? item.studios.map(s => ({ name: s.name })) : [] }
-        }));
-        state.hasMorePages = json.pagination?.has_next_page || false;
-        state.items = reset ? fallbackItems : [...state.items, ...fallbackItems];
-        renderPosterGrid();
-        elements.btnLoadMore.classList.toggle('hidden', !state.hasMorePages);
-      } catch (e) {
-        if (reset) elements.posterGrid.innerHTML = '';
-        elements.emptyState.classList.remove('hidden');
-        elements.btnLoadMore.classList.add('hidden');
-      }
-    }
-
-    function renderPosterGrid() {
-      if (!state.items || state.items.length === 0) {
-        elements.posterGrid.innerHTML = '';
-        elements.emptyState.classList.remove('hidden');
-        elements.btnLoadMore.classList.add('hidden');
-        return;
-      }
-      elements.emptyState.classList.add('hidden');
-      elements.posterGrid.innerHTML = state.items.map((item, index) => `
-        <div data-index="${index}" class="poster-card group relative bg-black/20 backdrop-blur-sm rounded overflow-hidden border border-white/10 cursor-pointer transition-transform duration-200 hover:scale-[1.03] hover:z-20 hover:border-white/40 shadow-lg">
-          <img src="${item.coverImage?.extraLarge || item.coverImage?.large || ''}" alt="${escapeHtml(item.title?.english || '')}" loading="lazy" class="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-90 pointer-events-none">
-        </div>
-      `).join('');
-
-      elements.posterGrid.querySelectorAll('.poster-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const idx = parseInt(card.getAttribute('data-index'));
-          const item = state.items[idx];
-          if (item) {
-            if (item.type === 'MANGA') {
-              openMangaReaderModal(item);
-            } else {
-              openAnimePlayerModal(item);
-            }
-          }
-        });
-      });
-    }
-
-    function openAnimePlayerModal(item) {
-      state.activeItem = item;
-      const title = item.title?.english || item.title?.romaji || 'Untitled Anime';
-      elements.playerAnimeTitle.textContent = title;
-
-      const seasons = [{
-        id: item.id || item.idMal || 1,
-        title: title,
-        episodes: item.episodes || 12
-      }];
-
-      if (item.relations?.edges) {
-        item.relations.edges.forEach(edge => {
-          if (['SEQUEL', 'PREQUEL'].includes(edge.relationType) && edge.node?.type === 'ANIME') {
-            seasons.push({
-              id: edge.node.id || edge.node.idMal,
-              title: edge.node.title?.english || edge.node.title?.romaji || 'Season',
-              episodes: edge.node.episodes || 12
-            });
-          }
-        });
-      }
-
-      state.currentSeasonId = seasons[0].id;
-      elements.playerSeasonSelect.innerHTML = seasons.map((s, idx) => `
-        <option value="${s.id}">Season ${idx + 1} (${escapeHtml(s.title)})</option>
-      `).join('');
-
-      updatePlayerEpisodesAndFrame();
-      elements.animePlayerModal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function updatePlayerEpisodesAndFrame() {
-      const item = state.activeItem;
-      let totalEpisodes = 12;
-
-      if (item.id == state.currentSeasonId || item.idMal == state.currentSeasonId) {
-        totalEpisodes = item.episodes || 12;
-      } else if (item.relations?.edges) {
-        const found = item.relations.edges.find(e => (e.node?.id == state.currentSeasonId || e.node?.idMal == state.currentSeasonId));
-        if (found && found.node?.episodes) {
-          totalEpisodes = found.node.episodes;
-        }
-      }
-
-      let optionsHtml = '';
-      for (let i = 1; i <= totalEpisodes; i++) {
-        optionsHtml += `<option value="${i}">Ep ${i}</option>`;
-      }
-      elements.playerEpisodeSelect.innerHTML = optionsHtml;
-
-      const selectedEp = elements.playerEpisodeSelect.value || 1;
-      elements.animePlayerIframe.src = `https://streamrip.fun/play?type=anime&id=${state.currentSeasonId}&ep=${selectedEp}`;
-    }
-
-    function closeAnimePlayerModal() {
-      elements.animePlayerModal.classList.add('hidden');
-      document.body.style.overflow = '';
-      elements.animePlayerIframe.src = '';
-    }
-
-    async function openMangaReaderModal(item) {
-      state.activeItem = item;
-      elements.readerMangaTitle.textContent = item.title?.english || item.title?.romaji || 'Manga';
-      elements.mangaReaderModal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-
-      elements.readerPagesContainer.innerHTML = `<div class="text-center py-20 space-y-3"><i class="fa-solid fa-circle-notch fa-spin text-xl text-neutral-400"></i><p class="text-xs text-neutral-400">Searching all manga providers...</p></div>`;
-
-      try {
-        const t1 = item.title?.english || '';
-        const t2 = item.title?.romaji || '';
-        const params = new URLSearchParams({ action: 'chapters', title: t1 || t2 });
-        if (t1 && t2 && t1 !== t2) params.set('alt', t2);
-        if (item.id) params.set('al', item.id);
-        if (item.idMal) params.set('mal', item.idMal);
-        const res = await fetch('/api/manga?' + params.toString());
-        const data = await res.json();
-        if (!res.ok || data.error) throw new Error(data.error || 'Manga not found on MangaDex.');
-        if (!data.chapters?.length) throw new Error('No English chapters available.');
-
-        state.reader.mangadexId = data.mdId;
-        const chapterList = data.chapters.map(ch => ({
-          id: ch.id,
-          src: ch.src || [ch.id],
-          chapter: ch.ch == null ? 'Oneshot' : ch.ch,
-          vol: ch.vol,
-          season: ch.s,
-          title: ch.title || (ch.ch == null ? 'Oneshot' : `Chapter ${ch.ch}`)
-        }));
-        state.reader.chapters = chapterList;
-        elements.readerChapterSelect.innerHTML = chapterList.map((ch, i) => {
-          const prefix = data.seasons ? `S${ch.season} ` : (ch.vol ? `Vol ${ch.vol} ` : '');
-          return `<option value="${i}">${escapeHtml(prefix)}Ch ${escapeHtml(ch.chapter)}: ${escapeHtml(ch.title)}</option>`;
-        }).join('');
-        loadMangaChapterPages(0);
-      } catch (err) {
-        elements.readerChapterSelect.innerHTML = `<option value="">Unavailable</option>`;
-        elements.readerPagesContainer.innerHTML = `<div class="text-center py-20 space-y-2 max-w-md mx-auto"><i class="fa-solid fa-circle-exclamation text-xl text-neutral-400"></i><h4 class="text-xs font-bold text-neutral-300">Pages Unavailable</h4><p class="text-xs text-neutral-400">${escapeHtml(err.message)}</p></div>`;
-      }
-    }
-
-    async function loadMangaChapterPages(chapterIndex) {
-      if (chapterIndex < 0 || chapterIndex >= state.reader.chapters.length) return;
-      state.reader.currentChapterIndex = chapterIndex;
-      const ch = state.reader.chapters[chapterIndex];
-      elements.readerChapterSelect.value = chapterIndex;
-      elements.btnReaderPrevCh.disabled = (chapterIndex === 0);
-      elements.btnReaderNextCh.disabled = (chapterIndex === state.reader.chapters.length - 1);
-
-      elements.readerPagesContainer.innerHTML = `<div class="text-center py-20 space-y-3"><i class="fa-solid fa-circle-notch fa-spin text-xl text-neutral-400"></i><p class="text-xs text-neutral-400">Loading Chapter ${escapeHtml(ch.chapter)}...</p></div>`;
-
-      try {
-        const atHomeRes = await fetch('/api/manga?action=pages&src=' + encodeURIComponent(ch.src.join(',')));
-        const atHomeJson = await atHomeRes.json();
-        if (!atHomeRes.ok || atHomeJson.error) throw new Error(atHomeJson.error || 'Could not load pages');
-        state.reader.pages = atHomeJson.urls;
-        state.reader.alts = atHomeJson.alts || [];
-        state.reader.singlePageIndex = 0;
-        state.reader.viewMode === 'scroll' ? renderWebtoonScroll() : renderSinglePage();
-      } catch (err) {
-        elements.readerPagesContainer.innerHTML = `<p class="text-center text-neutral-400 text-xs py-16">Error loading Chapter ${escapeHtml(ch.chapter)}.</p>`;
-      }
-    }
-
-    function renderWebtoonScroll() {
-      elements.readerSinglePageFooter.classList.add('hidden');
-      elements.readerPagesContainer.innerHTML = state.reader.pages.map((url, i) => `<img src="${escapeHtml(url)}" data-alt="${escapeHtml((state.reader.alts || [])[i] || '')}" onerror="if(this.dataset.alt&&!this.dataset.tried){this.dataset.tried=1;this.src=this.dataset.alt}" alt="Page ${i + 1}" loading="lazy" class="w-full max-w-2xl mx-auto block my-2 border border-white/10 shadow-lg">`).join('');
-    }
-
-    function renderSinglePage() {
-      elements.readerSinglePageFooter.classList.remove('hidden');
-      const total = state.reader.pages.length;
-      const current = state.reader.singlePageIndex;
-      elements.singlePageIndicator.textContent = `Page ${current + 1} / ${total}`;
-      elements.btnSinglePrevPage.disabled = (current === 0);
-      elements.btnSingleNextPage.disabled = (current === total - 1);
-      elements.readerPagesContainer.innerHTML = `<div class="flex items-center justify-center min-h-[70vh]"><img src="${escapeHtml(state.reader.pages[current])}" data-alt="${escapeHtml((state.reader.alts || [])[current] || '')}" onerror="if(this.dataset.alt&&!this.dataset.tried){this.dataset.tried=1;this.src=this.dataset.alt}" alt="Page ${current + 1}" class="max-h-[80vh] w-auto object-contain border border-white/10 shadow-lg"></div>`;
-    }
-
-    function toggleReaderViewMode() {
-      state.reader.viewMode = state.reader.viewMode === 'scroll' ? 'page' : 'scroll';
-      elements.viewModeIcon.className = state.reader.viewMode === 'scroll' ? "fa-solid fa-scroll" : "fa-solid fa-book-open";
-      state.reader.viewMode === 'scroll' ? renderWebtoonScroll() : renderSinglePage();
-    }
-
-    function toggleReaderTheme() {
-      const modal = elements.mangaReaderModal;
-      if (state.reader.theme === 'dark') {
-        state.reader.theme = 'gray';
-        modal.className = "fixed inset-0 z-50 hidden flex flex-col reader-theme-gray transition-colors duration-200";
-      } else if (state.reader.theme === 'gray') {
-        state.reader.theme = 'light';
-        modal.className = "fixed inset-0 z-50 hidden flex flex-col reader-theme-light transition-colors duration-200";
-      } else {
-        state.reader.theme = 'dark';
-        modal.className = "fixed inset-0 z-50 hidden flex flex-col reader-theme-dark transition-colors duration-200";
-      }
-    }
-
-    function closeMangaReader() {
-      elements.mangaReaderModal.classList.add('hidden');
-      document.body.style.overflow = '';
-      elements.readerPagesContainer.innerHTML = '';
-    }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-
-    window.addEventListener('DOMContentLoaded', init);
-  </script>
-
+/* ---------- router ---------- */
+function route(){
+ const tok=++rt;clearInterval(heroT);feed=null;if(obs)obs.disconnect();$('#side').classList.remove('open');
+ const [r,a,b]=(location.hash.replace(/^#\/?/,'')||'home').split('/'),name=r||'home';
+ document.title='Manga — read free online, in HD';
+ const navName=name==='manga'||name==='read'?'browse':name;
+ document.querySelectorAll('nav.main a').forEach(x=>x.classList.toggle('on',x.dataset.r===navName));
+ if(name==='read'){document.body.style.overflow='hidden';if(!app.innerHTML.trim())detail(+a,tok);openRead(+a,b);return}
+ closeRd();scrollTo(0,0);
+ if(name==='home')home(tok);
+ else if(name==='browse'){Object.assign(bs,{sort:'POPULARITY_DESC',country:'',status:'',genre:'',min:''});if(a&&b)bs[a==='sort'?'sort':a]=decodeURIComponent(b);browse()}
+ else if(name==='search')searchPage(decodeURIComponent(a||''));
+ else if(name==='library')libraryPage(tok);
+ else if(name==='manga')detail(+a,tok);
+ else nf();
+}
+$('#burger').onclick=()=>$('#side').classList.toggle('open');
+addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='k'){e.preventDefault();if(location.hash.startsWith('#/search'))$('#sqi')&&$('#sqi').focus();else location.hash='#/search'}});
+addEventListener('hashchange',route);route();
+</script>
 <script>
 /* ADSM cursor bridge: hides this page's own cursor and reports the mouse to the parent page (index.html),
    which draws the custom cursor on top. Safe to leave in when the page is opened on its own. */
